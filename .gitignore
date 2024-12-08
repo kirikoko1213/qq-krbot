@@ -1,0 +1,5 @@
+manage-board/node_modules
+manage-board/dist
+.idea
+manage-board/.idea
+config.properties
