@@ -51,7 +51,8 @@ func Help(*req.TriggerParameter) (string, error) {
 		"3. AI回复: @我输入任意内容即可与AI对话" + "\n" +
 		"4. 群吹水排名: @我并发送 排名" + "\n" +
 		"5. 人格分析: @我并发送 人格分析" + "\n" +
-		"6. ......" + "\n" +
+		"6. 假期倒计时: @我并发送 假期" + "\n" +
+		"......" + "\n" +
 		"\n开源地址: https://github.com/kiririx/qq-krbot", nil
 }
 
