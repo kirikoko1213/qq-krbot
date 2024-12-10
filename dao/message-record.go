@@ -1,6 +1,9 @@
 package dao
 
-import "time"
+import (
+	"qq-krbot/qqutil"
+	"time"
+)
 
 type _MessageRecordDao struct {
 }
@@ -76,6 +79,7 @@ func (m *_MessageRecordDao) FindQQAccountsByDateAndGroupId(groupId int64, startD
 	return results
 }
 
+// FindTextMessageByQQAccountAndGroupId 查询文字消息的最后limit条, 当文字超出100, 不参与统计
 func (m *_MessageRecordDao) FindTextMessageByQQAccountAndGroupId(groupId int64, qqAccount int64, limit int) []string {
 	var results []string
 	Sql.Model(&MessageRecord{}).
@@ -83,8 +87,9 @@ func (m *_MessageRecordDao) FindTextMessageByQQAccountAndGroupId(groupId int64, 
 		Where("group_id = ?", groupId).
 		Where("qq_account = ?", qqAccount).
 		Where("message not like ?", "[CQ%").
-		Order("created_at ASC").
+		Where("char_length(message) <= 100").
+		Order("created_at DESC").
 		Limit(limit).
 		Scan(&results)
-	return results
+	return qqutil.ReverseNewSlice(results)
 }

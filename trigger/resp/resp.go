@@ -169,7 +169,7 @@ func MyWifeOfGroup(param *req.TriggerParameter) (string, error) {
 }
 
 func CharacterPortrait(param *req.TriggerParameter) (string, error) {
-	messages := dao.MessageRecordDao.FindTextMessageByQQAccountAndGroupId(param.CqParam.GroupId, param.CqParam.UserId, 100)
+	messages := dao.MessageRecordDao.FindTextMessageByQQAccountAndGroupId(param.CqParam.GroupId, param.CqParam.UserId, 300)
 	if len(messages) < 10 {
 		return "没有足够的消息记录，请继续水群吧", nil
 	}

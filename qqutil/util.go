@@ -93,3 +93,11 @@ func CalculateRemainingDays(dateStr string) (int, error) {
 	days := int(duration.Hours() / 24)
 	return days, nil
 }
+
+func ReverseNewSlice[T any](s []T) []T {
+	newSlice := make([]T, len(s))
+	for i, j := 0, len(s)-1; i < len(s); i, j = i+1, j-1 {
+		newSlice[i] = s[j]
+	}
+	return newSlice
+}
