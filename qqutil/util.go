@@ -82,3 +82,14 @@ func AppendValue[T any](arr []T, value T) []T {
 
 	return newArray
 }
+
+func CalculateRemainingDays(dateStr string) (int, error) {
+	holidayDate, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		return 0, err
+	}
+	now := time.Now()
+	duration := holidayDate.Sub(now)
+	days := int(duration.Hours() / 24)
+	return days, nil
+}

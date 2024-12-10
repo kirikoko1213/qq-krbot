@@ -23,6 +23,10 @@ func OffWorkTimeAnnounce(param *req.TriggerParameter) bool {
 	return strx.Equals(strx.TrimSpace(param.CqParam.KrMessage), "报时", "11")
 }
 
+func HolidayAnnounce(param *req.TriggerParameter) bool {
+	return strx.Equals(param.CqParam.KrMessage, "假期", "假期倒计时")
+}
+
 func RankOfGroupMsg(param *req.TriggerParameter) bool {
 	text := strx.TrimSpace(param.CqParam.KrMessage)
 	return strx.Equals(text, "排名")

@@ -3,6 +3,7 @@ package resp
 import (
 	"fmt"
 	"github.com/kiririx/krutils/strx"
+	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"qq-krbot/dao"
 	"qq-krbot/env"
@@ -75,6 +76,30 @@ func OffWorkTimeAnnounce(param *req.TriggerParameter) (string, error) {
 	if result3 != "" {
 		message += fmt.Sprintf("\n 6:00.PM -> %s", result3)
 	}
+	return message, nil
+}
+
+func HolidayAnnounce(param *req.TriggerParameter) (string, error) {
+	holidayJSON := env.Get("holiday")
+	if holidayJSON == "" {
+		return "抱歉，没有找到假期信息", nil
+	}
+	holiday := gjson.Parse(holidayJSON)
+	var message string
+	message += "距离下面的假期还有: \n"
+	holiday.ForEach(func(key, value gjson.Result) bool {
+		holidayName := value.Get("name").String()
+		holidayDate := value.Get("date").String()
+		// 计算剩余天数
+		remainingDays, err := qqutil.CalculateRemainingDays(holidayDate)
+		if err != nil {
+			return false
+		}
+
+		// 添加到消息中
+		message += fmt.Sprintf("%s: %d天\n", holidayName, remainingDays)
+		return true
+	})
 	return message, nil
 }
 

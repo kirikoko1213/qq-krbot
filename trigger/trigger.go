@@ -34,6 +34,7 @@ func init() {
 	addTrigger(pr, Health, resp.Health)                           // ping
 	addTrigger(at, OffWorkTimeAnnounce, resp.OffWorkTimeAnnounce) // 下班时间
 	addTrigger(gr, OffWorkTimeAnnounce, resp.OffWorkTimeAnnounce) // 下班时间
+	addTrigger(at, HolidayAnnounce, resp.HolidayAnnounce)         // 假期倒计时
 	addTrigger(at, AISetting, resp.AISetting)                     // ai角色设置
 	addTrigger(at, RankOfGroupMsg, resp.RankOfGroupMsg)           // 群吹水排名
 	addTrigger(at, MyWifeOfGroup, resp.MyWifeOfGroup)             // 群吹水排名
