@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/kiririx/krutils/convertx"
 	"github.com/kiririx/krutils/httpx"
 	"github.com/kiririx/krutils/strx"
@@ -56,6 +55,11 @@ func (*_AIHandler) ClearSetting(param *req.Param) {
 }
 
 func (*_AIHandler) SingleTalk(prompts, message string) (string, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			lg.Log.Error(err)
+		}
+	}()
 	timeout := env.Get("chatgpt.timeout")
 	proxyURL := env.Get("proxy.url")
 	cli := httpx.Client()
@@ -81,19 +85,19 @@ func (*_AIHandler) SingleTalk(prompts, message string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Println("解析json错误")
-			fmt.Println(json)
-		}
-	}()
-
 	content := gjson.Get(json, "choices.0.message.content").String()
+	if content == "" {
+		lg.Log.WithField("AI-response: ", json).Error("AI 回复为空")
+	}
 	return strx.TrimSpace(content), nil
 }
 
 func (*_AIHandler) Do(param *req.Param) (string, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			lg.Log.Error(err)
+		}
+	}()
 	storage := getStorage()
 	timeout := env.Get("chatgpt.timeout")
 	proxyURL := env.Get("proxy.url")
@@ -123,15 +127,10 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Println("解析json错误")
-			fmt.Println(json)
-		}
-	}()
-
 	content := gjson.Get(json, "choices.0.message.content").String()
+	if content == "" {
+		lg.Log.WithField("AI-response: ", json).Error("AI 回复为空")
+	}
 	err = storage.Push("user", param.GroupId, param.UserId, param.KrMessage)
 	if err != nil {
 		return "", err
