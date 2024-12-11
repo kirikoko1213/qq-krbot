@@ -30,11 +30,7 @@ func init() {
 		env.Get(`mysql.port`),
 		env.Get(`mysql.database`),
 	), 10, 500, time.Minute*15)
-	err := Sql.AutoMigrate(&AIRole{})
-	if err != nil {
-		return
-	}
-	err = Sql.AutoMigrate(&MessageRecord{})
+	err := Sql.AutoMigrate(&MessageRecord{})
 	if err != nil {
 		return
 	}

@@ -123,14 +123,10 @@ func Repeat(param *req.TriggerParameter) (string, error) {
 	lastRepeatMsg[param.CqParam.GroupId] = repeatMsg
 	return repeatMsg, nil
 }
-
 func AISetting(param *req.TriggerParameter) (string, error) {
 	cqParam := param.CqParam
 	setting := strx.SubStr(strx.TrimSpace(cqParam.KrMessage), 2, strx.Len(cqParam.KrMessage))
-	err := repo.NewAIRepoRole().Set(cqParam.UserId, "", cqParam.GroupId, "", setting)
-	if err != nil {
-		return "", err
-	}
+	env.SetWithMode(env.ModeDB, env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId), setting)
 	handler.AIHandler.ClearSetting(cqParam)
 	return "角色设定成功！", nil
 }
