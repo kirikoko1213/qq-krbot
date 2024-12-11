@@ -8,7 +8,6 @@ import (
 	"qq-krbot/env"
 	lg "qq-krbot/logx"
 	"qq-krbot/qqutil"
-	"qq-krbot/repo"
 	"qq-krbot/req"
 	"time"
 )
@@ -20,16 +19,25 @@ var getRoleMap = func(qqAccount int64, groupId int64) map[string]string {
 }
 
 func GetAISetting(qqAccount int64, groupId int64) string {
+	var promptsGetter func(key string) string
 	if env.Get("storage.engine") == "db" {
-		setting, err := repo.NewAIRepoRole().Get(qqAccount, groupId)
-		if err != nil {
-			lg.Log.Error(err)
-		}
-		if setting != "" {
-			return setting
-		}
+		promptsGetter = env.GetWithDB
+	} else {
+		promptsGetter = env.Get
 	}
-	return env.Get("ai.setting")
+	l1 := promptsGetter(env.AITalkPrompts())
+	if l1 != "" {
+		l1 = "1. (必须遵守):" + l1 + ";\n"
+	}
+	l2 := promptsGetter(env.AITalkGroupPrompts(groupId))
+	if l2 != "" {
+		l2 = "2. (必须遵守):" + l2 + ";\n"
+	}
+	l3 := promptsGetter(env.AITalkGroupAndUserPrompts(groupId, qqAccount))
+	if l3 != "" {
+		l3 = "3. (尽量遵守):" + l3 + ";\n"
+	}
+	return l1 + l2 + l3
 }
 
 type _AIHandler struct {

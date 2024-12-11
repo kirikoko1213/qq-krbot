@@ -5,8 +5,39 @@ import (
 	"github.com/kiririx/krutils/convertx"
 )
 
+type Mode = string
+
+var ModeDB = "db"
+var ModeProps = "properties"
+
+func getterWithMode(mode Mode) ec.Handler {
+	if mode == ModeDB {
+		return DbEnv
+	}
+	if mode == ModeProps {
+		return PropertiesEnv
+	}
+	return nil
+}
+
+func GetWithMode(mode Mode, key string) string {
+	return getterWithMode(mode).Get(key)
+}
+
+func SetWithMode(mode Mode, key string, value string) {
+	getterWithMode(mode).Set(key, value)
+}
+
 func Get(key string) string {
 	return PropertiesEnv.Get(key)
+}
+
+func GetWithDB(key string) string {
+	return DbEnv.Get(key)
+}
+
+func SetWithDB(key string, value string) {
+	DbEnv.Set(key, value)
 }
 
 var OneBotURL string
