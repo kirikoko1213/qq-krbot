@@ -13,4 +13,7 @@ func RegisterRouter(r *gin.Engine) {
 	configAPI := NewConfigAPI()
 	r.GET("/api/config/get", configAPI.Get)
 	r.POST("/api/config/set", configAPI.Set)
+
+	aiAPI := NewAiAPI()
+	r.POST("/api/ai/clear-setting-cache", aiAPI.ClearAISettingCache)
 }
