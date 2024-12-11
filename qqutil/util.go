@@ -19,7 +19,7 @@ func SendPrivateMessage(targetQQ string, msg QQMsg) {
 		return
 	}
 	url := env.OneBotURL + "/send_private_msg"
-	resp, err := httpx.Client().Timeout(time.Second*30).Headers(map[string]string{
+	_, err := httpx.Client().Timeout(time.Second*30).Headers(map[string]string{
 		"content-type": "application/json",
 	}).PostString(url, map[string]any{
 		"message": func() string {
@@ -35,7 +35,6 @@ func SendPrivateMessage(targetQQ string, msg QQMsg) {
 		log.Println(err)
 		return
 	}
-	fmt.Println("cq-http-resp => ", resp)
 }
 
 // TimeUntilOffWork 计算距离下班时间还有多久

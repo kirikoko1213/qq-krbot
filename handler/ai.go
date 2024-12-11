@@ -5,10 +5,10 @@ import (
 	"github.com/kiririx/krutils/httpx"
 	"github.com/kiririx/krutils/strx"
 	"github.com/tidwall/gjson"
-	"qq-krbot/dao"
 	"qq-krbot/env"
 	lg "qq-krbot/logx"
 	"qq-krbot/qqutil"
+	"qq-krbot/repo"
 	"qq-krbot/req"
 	"time"
 )
@@ -21,7 +21,7 @@ var getRoleMap = func(qqAccount int64, groupId int64) map[string]string {
 
 func GetAISetting(qqAccount int64, groupId int64) string {
 	if env.Get("storage.engine") == "db" {
-		setting, err := dao.AIRoleDao.Get(qqAccount, groupId)
+		setting, err := repo.NewAIRepoRole().Get(qqAccount, groupId)
 		if err != nil {
 			lg.Log.Error(err)
 		}

@@ -8,10 +8,10 @@ import (
 	"log"
 	"net/http"
 	"qq-krbot/base"
-	"qq-krbot/dao"
 	"qq-krbot/env"
 	lg "qq-krbot/logx"
 	"qq-krbot/qqutil"
+	"qq-krbot/repo"
 	"qq-krbot/req"
 	"qq-krbot/trigger"
 	"time"
@@ -29,21 +29,17 @@ func Bot(c *gin.Context) {
 	param := &req.Param{}
 	err := c.ShouldBindJSON(param)
 	if err != nil {
-		//return
+		// return
 	}
 	param.Parse()
-	if param.PostType == "meta_event" {
-		fmt.Println(param.Message)
-		return
-	}
 	if param.PostType == "message" {
 		go func() {
-			err := dao.MessageRecordDao.Save(param.UserId, param.GroupId, param.RawMessage)
+			err := repo.NewMessageRecordRepo().Save(param.UserId, param.GroupId, param.RawMessage)
 			if err != nil {
 				lg.Log.Error(err)
 			}
 		}()
-		log.Println("接收消息:", param.RawMessage)
+		lg.Log.Infof("接收消息: %s", param.RawMessage)
 		msgQueue.Enqueue(param.RawMessage)
 		triggerParameter := &req.TriggerParameter{
 			CqParam:  param,

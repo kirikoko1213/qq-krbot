@@ -2,11 +2,13 @@ package handler
 
 import "math/rand"
 
-type _WifeHandler struct{}
+type WifeHandler struct{}
 
-var WifeHandler = &_WifeHandler{}
+func NewWifeHandler() *WifeHandler {
+	return &WifeHandler{}
+}
 
-func (receiver _WifeHandler) BuildWifeGroup(accounts []int64) (pairs [][2]int64, remainder *int64) {
+func (receiver *WifeHandler) BuildWifeGroup(accounts []int64) (pairs [][2]int64, remainder *int64) {
 	// 创建原数组的副本，避免修改原数组
 	temp := make([]int64, len(accounts))
 	copy(temp, accounts)

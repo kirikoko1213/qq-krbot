@@ -1,4 +1,4 @@
-package dao
+package repo
 
 import (
 	"database/sql"
@@ -35,6 +35,10 @@ func init() {
 		return
 	}
 	err = Sql.AutoMigrate(&MessageRecord{})
+	if err != nil {
+		return
+	}
+	err = Sql.AutoMigrate(&MessageCount{})
 	if err != nil {
 		return
 	}

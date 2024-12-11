@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/kiririx/krutils/asyncx"
 	"github.com/kiririx/krutils/convertx"
-	"qq-krbot/dao"
 	"qq-krbot/env"
 	"qq-krbot/handler"
 	"qq-krbot/qqutil"
+	"qq-krbot/repo"
 	"strconv"
 	"strings"
 )
@@ -70,12 +70,12 @@ func rankTask() {
 	groupIdArr := strings.Split(groupIdStrings, ",")
 	for _, groupIdStr := range groupIdArr {
 		groupId, _ := strconv.ParseInt(groupIdStr, 10, 64)
-		rankArray := dao.MessageRecordDao.RankWithGroupAndYesterday(groupId)
+		rankArray := repo.NewMessageRecordRepo().RankWithGroupAndYesterday(groupId)
 		// 只取前三名
 		if len(rankArray) > 3 {
 			rankArray = rankArray[:3]
 		}
-		response := handler.RankHandler.BuildResponseString(rankArray, groupId)
+		response := handler.NewRankHandler().BuildResponseString(rankArray, groupId)
 		handler.OneBotHandler.SendGroupMsg(groupId, ""+
 			"早上好！"+botName+"为您播报昨日的水群排名："+
 			response)

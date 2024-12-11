@@ -15,8 +15,6 @@ type _OneBotHandler struct {
 var OneBotHandler = &_OneBotHandler{}
 
 type GroupMemberInfo struct {
-	//GroupId  int64  `json:"group_id"`
-	//UserId   int64  `json:"user_id"`
 	Nickname string `json:"nickname"`
 	Card     string `json:"card"`
 	Title    string `json:"title"`

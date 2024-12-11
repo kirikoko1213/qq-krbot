@@ -4,7 +4,7 @@ import (
 	"github.com/kiririx/krutils/httpx"
 )
 
-type DNF struct {
+type DNFHandler struct {
 }
 
 type DNFGold struct {
@@ -12,11 +12,11 @@ type DNFGold struct {
 	TradeType string
 }
 
-func DNFHandler() *DNF {
-	return &DNF{}
+func NewDNFHandler() *DNFHandler {
+	return &DNFHandler{}
 }
 
-func (d *DNF) Gold() ([]DNFGold, error) {
+func (d *DNFHandler) Gold() ([]DNFGold, error) {
 	url := "http://www.uu898.com/ashx/GameRetail.ashx?act=a001&g=95&a=2335&s=25080&c=-3&cmp=-1&_t=1639304944162"
 	resp, err := httpx.Client().GetJSON(url, nil)
 	if err != nil {

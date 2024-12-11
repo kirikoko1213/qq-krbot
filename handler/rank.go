@@ -2,16 +2,18 @@ package handler
 
 import (
 	"fmt"
-	"qq-krbot/dao"
 	lg "qq-krbot/logx"
+	"qq-krbot/repo"
 )
 
-type _RankHandler struct {
+type RankHandler struct {
 }
 
-var RankHandler *_RankHandler = &_RankHandler{}
+func NewRankHandler() *RankHandler {
+	return &RankHandler{}
+}
 
-func (receiver *_RankHandler) BuildResponseString(rankArray dao.RankWithGroupResult, groupId int64) string {
+func (receiver *RankHandler) BuildResponseString(rankArray repo.RankWithGroupResult, groupId int64) string {
 	var response string
 	for rank, v := range rankArray {
 		// 获取qq号对应的群名片

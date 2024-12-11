@@ -1,7 +1,5 @@
 package base
 
-import "fmt"
-
 // 定义一个队列结构体
 type Queue struct {
 	items []interface{}
@@ -44,11 +42,6 @@ func (q *Queue) IsEmpty() bool {
 // 获取当前队列长度
 func (q *Queue) Length() int {
 	return len(q.items)
-}
-
-// 打印队列内容
-func (q *Queue) Print() {
-	fmt.Println(q.items)
 }
 
 func (q *Queue) GetIndex(index int) interface{} {

@@ -1,16 +1,33 @@
-package dao
+package repo
 
 import (
+	"gorm.io/gorm"
 	"qq-krbot/qqutil"
 	"time"
 )
 
-type _MessageRecordDao struct {
+type MessageRecord struct {
+	QQAccount   int64  `gorm:"column:qq_account"`
+	QQNickname  string `gorm:"column:qq_nickname"`
+	GroupId     int64  `gorm:"column:group_id"`
+	GroupName   string `gorm:"column:group_name"`
+	Message     string `gorm:"column:message"` // 这里存储的是携带CQ码的消息
+	MessageType string `gorm:"column:message_type"`
+	gorm.Model
 }
 
-var MessageRecordDao *_MessageRecordDao = &_MessageRecordDao{}
+func (s *MessageRecord) TableName() string {
+	return "message_record"
+}
 
-func (m *_MessageRecordDao) Save(qqAccount int64, groupId int64, message string) error {
+type MessageRecordRepo struct {
+}
+
+func NewMessageRecordRepo() *MessageRecordRepo {
+	return &MessageRecordRepo{}
+}
+
+func (m *MessageRecordRepo) Save(qqAccount int64, groupId int64, message string) error {
 	err := Sql.Save(&MessageRecord{
 		QQAccount:   qqAccount,
 		QQNickname:  "",
@@ -30,7 +47,7 @@ type RankWithGroupResult = []struct {
 	Count     int64
 }
 
-func (m *_MessageRecordDao) RankWithGroupAndToday(groupId int64) RankWithGroupResult {
+func (m *MessageRecordRepo) RankWithGroupAndToday(groupId int64) RankWithGroupResult {
 	// 执行查询
 	var results []struct {
 		QQAccount int64
@@ -48,7 +65,7 @@ func (m *_MessageRecordDao) RankWithGroupAndToday(groupId int64) RankWithGroupRe
 	return results
 }
 
-func (m *_MessageRecordDao) RankWithGroupAndYesterday(groupId int64) RankWithGroupResult {
+func (m *MessageRecordRepo) RankWithGroupAndYesterday(groupId int64) RankWithGroupResult {
 	// 执行查询
 	var results []struct {
 		QQAccount int64
@@ -67,7 +84,7 @@ func (m *_MessageRecordDao) RankWithGroupAndYesterday(groupId int64) RankWithGro
 }
 
 // FindQQAccountsByDateAndGroupId 根据群id查询指定时间区间的qq号
-func (m *_MessageRecordDao) FindQQAccountsByDateAndGroupId(groupId int64, startDateTime time.Time, endDateTime time.Time) []int64 {
+func (m *MessageRecordRepo) FindQQAccountsByDateAndGroupId(groupId int64, startDateTime time.Time, endDateTime time.Time) []int64 {
 	var results []int64
 	Sql.Model(&MessageRecord{}).
 		Select("qq_account").
@@ -80,7 +97,7 @@ func (m *_MessageRecordDao) FindQQAccountsByDateAndGroupId(groupId int64, startD
 }
 
 // FindTextMessageByQQAccountAndGroupId 查询文字消息的最后limit条, 当文字超出100, 不参与统计
-func (m *_MessageRecordDao) FindTextMessageByQQAccountAndGroupId(groupId int64, qqAccount int64, limit int) []string {
+func (m *MessageRecordRepo) FindTextMessageByQQAccountAndGroupId(groupId int64, qqAccount int64, limit int) []string {
 	var results []string
 	Sql.Model(&MessageRecord{}).
 		Select("message").

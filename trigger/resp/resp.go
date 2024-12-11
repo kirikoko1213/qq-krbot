@@ -5,10 +5,10 @@ import (
 	"github.com/kiririx/krutils/strx"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
-	"qq-krbot/dao"
 	"qq-krbot/env"
 	"qq-krbot/handler"
 	"qq-krbot/qqutil"
+	"qq-krbot/repo"
 	"qq-krbot/req"
 	"strings"
 	"time"
@@ -127,7 +127,7 @@ func Repeat(param *req.TriggerParameter) (string, error) {
 func AISetting(param *req.TriggerParameter) (string, error) {
 	cqParam := param.CqParam
 	setting := strx.SubStr(strx.TrimSpace(cqParam.KrMessage), 2, strx.Len(cqParam.KrMessage))
-	err := dao.AIRoleDao.Set(cqParam.UserId, "", cqParam.GroupId, "", setting)
+	err := repo.NewAIRepoRole().Set(cqParam.UserId, "", cqParam.GroupId, "", setting)
 	if err != nil {
 		return "", err
 	}
@@ -136,15 +136,15 @@ func AISetting(param *req.TriggerParameter) (string, error) {
 }
 
 func RankOfGroupMsg(param *req.TriggerParameter) (string, error) {
-	rankArray := dao.MessageRecordDao.RankWithGroupAndToday(param.CqParam.GroupId)
-	return handler.RankHandler.BuildResponseString(rankArray, param.CqParam.GroupId), nil
+	rankArray := repo.NewMessageRecordRepo().RankWithGroupAndToday(param.CqParam.GroupId)
+	return handler.NewRankHandler().BuildResponseString(rankArray, param.CqParam.GroupId), nil
 }
 
 func MyWifeOfGroup(param *req.TriggerParameter) (string, error) {
 	cqParam := param.CqParam
 	startDateTime := time.Now().AddDate(0, 0, -7)
-	accounts := dao.MessageRecordDao.FindQQAccountsByDateAndGroupId(cqParam.GroupId, startDateTime, time.Now())
-	wifeArr, remain := handler.WifeHandler.BuildWifeGroup(accounts)
+	accounts := repo.NewMessageRecordRepo().FindQQAccountsByDateAndGroupId(cqParam.GroupId, startDateTime, time.Now())
+	wifeArr, remain := handler.NewWifeHandler().BuildWifeGroup(accounts)
 	defWord := "抱歉, 今天你是本群单身狗~"
 	if cqParam.UserId == *remain {
 		return defWord, nil
@@ -170,7 +170,7 @@ func MyWifeOfGroup(param *req.TriggerParameter) (string, error) {
 }
 
 func CharacterPortrait(param *req.TriggerParameter) (string, error) {
-	messages := dao.MessageRecordDao.FindTextMessageByQQAccountAndGroupId(param.CqParam.GroupId, param.CqParam.UserId, 300)
+	messages := repo.NewMessageRecordRepo().FindTextMessageByQQAccountAndGroupId(param.CqParam.GroupId, param.CqParam.UserId, 300)
 	if len(messages) < 10 {
 		return "没有足够的消息记录，请继续水群吧", nil
 	}
@@ -187,7 +187,7 @@ func SmartReply(param *req.TriggerParameter) (string, error) {
 
 func ExecSQL(param *req.TriggerParameter) (string, error) {
 	sql := strx.SubStr(strx.TrimSpace(param.CqParam.KrMessage), 4, strx.Len(param.CqParam.KrMessage))
-	query, err := handler.ExecuteSelectQuery(dao.Sql, sql)
+	query, err := handler.ExecuteSelectQuery(repo.Sql, sql)
 	if err != nil {
 		return "", err
 	}

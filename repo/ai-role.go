@@ -1,16 +1,31 @@
-package dao
+package repo
 
 import (
 	"errors"
 	"gorm.io/gorm"
 )
 
-type _AIRoleDao struct {
+type AIRoleRepo struct {
 }
 
-var AIRoleDao = new(_AIRoleDao)
+type AIRole struct {
+	QQAccount  int64  `gorm:"column:qq_account"`
+	QQNickname string `gorm:"column:qq_nickname"`
+	GroupId    int64  `gorm:"column:group_id"`
+	GroupName  string `gorm:"column:group_name"`
+	Setting    string `gorm:"column:setting"`
+	gorm.Model
+}
 
-func (a *_AIRoleDao) Get(qqAccount int64, groupId int64) (string, error) {
+func (s *AIRole) TableName() string {
+	return "ai_role"
+}
+
+func NewAIRepoRole() *AIRoleRepo {
+	return &AIRoleRepo{}
+}
+
+func (a *AIRoleRepo) Get(qqAccount int64, groupId int64) (string, error) {
 	aiRole := AIRole{}
 	err := Sql.Where("qq_account=? AND group_id=?", qqAccount, groupId).Take(&aiRole).Error
 	if err != nil {
@@ -22,7 +37,7 @@ func (a *_AIRoleDao) Get(qqAccount int64, groupId int64) (string, error) {
 	return aiRole.Setting, nil
 }
 
-func (a *_AIRoleDao) Set(qqAccount int64, qqNickname string, groupId int64, groupName, setting string) error {
+func (a *AIRoleRepo) Set(qqAccount int64, qqNickname string, groupId int64, groupName, setting string) error {
 	aiRole := AIRole{}
 	err := Sql.Where("qq_account=? AND group_id=?", qqAccount, groupId).Take(&aiRole).Error
 	if err != nil {

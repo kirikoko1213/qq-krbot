@@ -1,4 +1,4 @@
-package dao
+package repo
 
 import (
 	"sync"
@@ -51,8 +51,8 @@ type files = *concurrentMap[int, string]
 var FileList *concurrentMap[tag, files]
 
 func init() {
-	//FileList = SyncMap[tag, files]()
-	//go func() {
+	// FileList = SyncMap[tag, files]()
+	// go func() {
 	//	for {
 	//		time.Sleep(time.Second * 10)
 	//		files, _ := ioutil.ReadDir("./photo")
@@ -77,5 +77,5 @@ func init() {
 	//		}
 	//		wg.Wait()
 	//	}
-	//}()
+	// }()
 }
