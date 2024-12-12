@@ -9,8 +9,6 @@ import (
 	lg "qq-krbot/logx"
 	"qq-krbot/qqutil"
 	"qq-krbot/req"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -197,17 +195,18 @@ func (m *MemoryStorage) GetArrayWithNewContent(roleType string, groupId, qqAccou
 }
 
 func (m *MemoryStorage) Clear(groupId, qqAccount int64) error {
-	delete(messageMap, groupId+qqAccount)
-	if qqAccount == 0 && groupId == 0 {
-		clear(messageMap)
-	} else if qqAccount == 0 {
-		for k := range messageMap {
-			// todo 这里需要处理, 因为key是通过整型相加, 而不是字符串相加
-			if strings.Contains(strconv.FormatInt(k, 10), strconv.FormatInt(groupId, 10)) {
-				delete(messageMap, k)
-			}
-		}
-	}
+	// delete(messageMap, groupId+qqAccount)
+	// if qqAccount == 0 && groupId == 0 {
+	// 	clear(messageMap)
+	// } else if qqAccount == 0 {
+	// 	for k := range messageMap {
+	// 		// todo 这里需要处理, 因为key是通过整型相加, 而不是字符串相加
+	// 		if strings.Contains(strconv.FormatInt(k, 10), strconv.FormatInt(groupId, 10)) {
+	// 			delete(messageMap, k)
+	// 		}
+	// 	}
+	// }
+	clear(messageMap)
 	return nil
 }
 
