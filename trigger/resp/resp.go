@@ -47,11 +47,12 @@ func init() {
 func Help(*req.TriggerParameter) (string, error) {
 	return "🌸使用方法🌸\n" +
 		"1. 报时: @我并发送 报时，显示下班时间" + "\n" +
-		"2. 设定: @我并发送 设定, 你是一个xxxxx" + "\n" +
-		"3. AI回复: @我输入任意内容即可与AI对话" + "\n" +
-		"4. 群吹水排名: @我并发送 排名" + "\n" +
-		"5. 人格分析: @我并发送 人格分析" + "\n" +
-		"6. 假期倒计时: @我并发送 假期" + "\n" +
+		"2. 设定: 设置以当前群组和发送者为单位的AI角色 @我并发送 设定, 你是一个xxxxx" + "\n" +
+		"3. 群角色设定: 设置以群组为单位的AI角色, @我并发送 群角色设定 你是一个xxxxx" + "\n" +
+		"4. AI回复: @我输入任意内容即可与AI对话" + "\n" +
+		"5. 群吹水排名: @我并发送 排名" + "\n" +
+		"6. 人格分析: @我并发送 人格分析" + "\n" +
+		"7. 假期倒计时: @我并发送 假期" + "\n" +
 		"......" + "\n" +
 		"\n开源地址: https://github.com/kiririx/qq-krbot", nil
 }
@@ -125,10 +126,25 @@ func Repeat(param *req.TriggerParameter) (string, error) {
 }
 func AISetting(param *req.TriggerParameter) (string, error) {
 	cqParam := param.CqParam
-	setting := strx.SubStr(strx.TrimSpace(cqParam.KrMessage), 2, strx.Len(cqParam.KrMessage))
-	env.SetWithMode(env.ModeDB, env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId), setting)
-	handler.AIHandler.ClearSetting(cqParam)
-	return "角色设定成功！", nil
+	if strx.StartWith(cqParam.KrMessage, "设定") {
+		setting := strx.SubStr(strx.TrimSpace(cqParam.KrMessage), 2, strx.Len(cqParam.KrMessage))
+		if setting == "" {
+			return "(当前设定): " + env.GetWithMode(env.ModeDB, env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId)), nil
+		}
+		env.SetWithMode(env.ModeDB, env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId), setting)
+		handler.AIHandler.ClearSetting(cqParam)
+		return "角色设定成功！", nil
+	}
+	if strx.StartWith(cqParam.KrMessage, "群角色设定") {
+		setting := strx.SubStr(strx.TrimSpace(cqParam.KrMessage), 5, strx.Len(cqParam.KrMessage))
+		if setting == "" {
+			return "(当前设定): " + env.GetWithMode(env.ModeDB, env.AITalkGroupPrompts(cqParam.GroupId)), nil
+		}
+		env.SetWithMode(env.ModeDB, env.AITalkGroupPrompts(cqParam.GroupId), setting)
+		handler.AIHandler.ClearSetting(cqParam)
+		return "群角色设定成功！", nil
+	}
+	return "", nil
 }
 
 func RankOfGroupMsg(param *req.TriggerParameter) (string, error) {

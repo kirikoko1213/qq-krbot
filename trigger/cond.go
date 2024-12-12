@@ -12,7 +12,7 @@ func Help(param *req.TriggerParameter) bool {
 }
 
 func AISetting(param *req.TriggerParameter) bool {
-	return strx.StartWith(param.CqParam.KrMessage, "设定")
+	return strx.StartWith(param.CqParam.KrMessage, "设定", "群角色设定")
 }
 
 func Health(param *req.TriggerParameter) bool {
