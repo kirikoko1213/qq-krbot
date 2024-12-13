@@ -45,6 +45,10 @@ func init() {
 }
 
 func Help(*req.TriggerParameter) (string, error) {
+	text := env.Get(env.HelpWordText())
+	if text != "" {
+		return text, nil
+	}
 	return "🌸使用方法🌸\n" +
 		"1. 报时: @我并发送 报时，显示下班时间" + "\n" +
 		"2. 设定: 设置以当前群组和发送者为单位的AI角色 @我并发送 设定, 你是一个xxxxx" + "\n" +
@@ -99,7 +103,7 @@ func HolidayAnnounce(param *req.TriggerParameter) (string, error) {
 		}
 
 		// 添加到消息中
-		message += fmt.Sprintf("%s: %d天\n", holidayName, remainingDays)
+		message += fmt.Sprintf("%s [%s]: %d天\n", holidayName, holidayDate, remainingDays)
 		return true
 	})
 	return message, nil
@@ -129,7 +133,7 @@ func AISetting(param *req.TriggerParameter) (string, error) {
 	if strx.StartWith(cqParam.KrMessage, "设定") {
 		setting := strx.SubStr(strx.TrimSpace(cqParam.KrMessage), 2, strx.Len(cqParam.KrMessage))
 		if setting == "" {
-			return "(当前设定): " + env.GetWithMode(env.ModeDB, env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId)), nil
+			return "(当前设定): " + env.Get(env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId)), nil
 		}
 		env.SetWithMode(env.ModeDB, env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId), setting)
 		handler.AIHandler.ClearSetting(cqParam)
@@ -138,7 +142,7 @@ func AISetting(param *req.TriggerParameter) (string, error) {
 	if strx.StartWith(cqParam.KrMessage, "群角色设定") {
 		setting := strx.SubStr(strx.TrimSpace(cqParam.KrMessage), 5, strx.Len(cqParam.KrMessage))
 		if setting == "" {
-			return "(当前设定): " + env.GetWithMode(env.ModeDB, env.AITalkGroupPrompts(cqParam.GroupId)), nil
+			return "(当前设定): " + env.Get(env.AITalkGroupPrompts(cqParam.GroupId)), nil
 		}
 		env.SetWithMode(env.ModeDB, env.AITalkGroupPrompts(cqParam.GroupId), setting)
 		handler.AIHandler.ClearSetting(cqParam)
@@ -182,11 +186,13 @@ func MyWifeOfGroup(param *req.TriggerParameter) (string, error) {
 }
 
 func CharacterPortrait(param *req.TriggerParameter) (string, error) {
-	messages := repo.NewMessageRecordRepo().FindTextMessageByQQAccountAndGroupId(param.CqParam.GroupId, param.CqParam.UserId, 300)
+	groupId := param.CqParam.GroupId
+	userId := param.CqParam.UserId
+	messages := repo.NewMessageRecordRepo().FindTextMessageByQQAccountAndGroupId(groupId, userId, 300)
 	if len(messages) < 10 {
 		return "没有足够的消息记录，请继续水群吧", nil
 	}
-	message, err := handler.AIHandler.SingleTalk(env.Get("character.portrait.prompts"), strings.Join(messages, "\n"))
+	message, err := handler.AIHandler.SingleTalk(env.Get(env.CharacterPortraitPrompts(groupId)), strings.Join(messages, "\n"))
 	if err != nil {
 		return "", err
 	}
@@ -194,7 +200,7 @@ func CharacterPortrait(param *req.TriggerParameter) (string, error) {
 }
 
 func SmartReply(param *req.TriggerParameter) (string, error) {
-	return handler.AIHandler.SingleTalk(env.Get("smart.reply.prompts"), param.CqParam.KrMessage)
+	return handler.AIHandler.SingleTalk(env.Get(env.SmartReplyPrompts()), param.CqParam.KrMessage)
 }
 
 func ExecSQL(param *req.TriggerParameter) (string, error) {

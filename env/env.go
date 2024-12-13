@@ -29,7 +29,11 @@ func SetWithMode(mode Mode, key string, value string) {
 }
 
 func Get(key string) string {
-	return PropertiesEnv.Get(key)
+	v := PropertiesEnv.Get(key)
+	if v == "" {
+		v = GetWithDB(key)
+	}
+	return v
 }
 
 func GetWithDB(key string) string {

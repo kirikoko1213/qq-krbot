@@ -19,21 +19,15 @@ var getRoleMap = func(qqAccount int64, groupId int64) map[string]string {
 }
 
 func GetAISetting(qqAccount int64, groupId int64) string {
-	var promptsGetter func(key string) string
-	if env.Get("storage.engine") == "db" {
-		promptsGetter = env.GetWithDB
-	} else {
-		promptsGetter = env.Get
-	}
-	l1 := promptsGetter(env.AITalkPrompts())
+	l1 := env.Get(env.AITalkPrompts())
 	if l1 != "" {
 		l1 = "1. (必须遵守):" + l1 + ";\n"
 	}
-	l2 := promptsGetter(env.AITalkGroupPrompts(groupId))
+	l2 := env.Get(env.AITalkGroupPrompts(groupId))
 	if l2 != "" {
 		l2 = "2. (必须遵守):" + l2 + ";\n"
 	}
-	l3 := promptsGetter(env.AITalkGroupAndUserPrompts(groupId, qqAccount))
+	l3 := env.Get(env.AITalkGroupAndUserPrompts(groupId, qqAccount))
 	if l3 != "" {
 		l3 = "3. (尽量遵守):" + l3 + ";\n"
 	}
