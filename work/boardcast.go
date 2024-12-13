@@ -17,7 +17,7 @@ var minute = 0
 
 func Boardcast() {
 	go asyncx.ScheduleTask("0 8 * * *", rankTask)
-	go asyncx.ScheduleTask("50 10 * * 1-5", takeoutTips)
+	go asyncx.ScheduleTask("0 11 * * 1-5", takeoutTips)
 	go asyncx.ScheduleTask("40 16 * * 1-5", workOffTips)
 	go asyncx.ScheduleTask("20 17 * * 1-5", workOffTips)
 }
