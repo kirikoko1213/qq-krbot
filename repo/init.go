@@ -38,6 +38,10 @@ func init() {
 	if err != nil {
 		return
 	}
+	err = Sql.AutoMigrate(&DynamicTriggerModel{})
+	if err != nil {
+		return
+	}
 }
 
 func initORM(dsn string, idle, max int, life time.Duration) {

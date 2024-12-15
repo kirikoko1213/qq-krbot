@@ -1,6 +1,7 @@
 package trigger
 
 import (
+	"qq-krbot/handler"
 	"qq-krbot/req"
 	"qq-krbot/trigger/resp"
 )
@@ -43,4 +44,6 @@ func init() {
 	addTrigger(gr, Repeat, resp.Repeat)
 	addTrigger(gr, ExecSQL, resp.ExecSQL)
 	addTrigger(gr, SmartReply, resp.SmartReply)
+	// 添加来自数据库的trigger
+	handler.NewDynamicTriggerHandler().RegisterTriggers(addTrigger)
 }
