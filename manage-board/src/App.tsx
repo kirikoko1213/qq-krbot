@@ -1,79 +1,62 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import { AppstoreOutlined, MailOutlined, SettingOutlined } from "@ant-design/icons";
+import { MailOutlined } from "@ant-design/icons";
 import "./App.css";
-import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
-import { Layout, Menu, MenuProps, Slider } from "antd";
-import { Content, Footer, Header } from "antd/es/layout/layout";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Layout, Menu, MenuProps } from "antd";
+import { Content } from "antd/es/layout/layout";
 import Sider from "antd/es/layout/Sider";
-
 
 type MenuItem = Required<MenuProps>["items"][number];
 
+export const RouterMap: any = {
+  configs: "/configs",
+  trigger_config: "/trigger-config",
+};
+
 const items: MenuItem[] = [
   {
-    key: "feature-enabled",
-    label: "功能启用",
-    icon: <MailOutlined />
-  },
-  {
-    key: "ai-config",
-    label: "AI配置",
-    icon: <MailOutlined />
-  },
-  {
-    key: "sub1",
-    label: "Navigation One",
+    key: "trigger-config",
+    label: "触发器",
     icon: <MailOutlined />,
-    children: [
-      {
-        key: "g1",
-        label: "Item 1",
-        type: "group",
-        children: [
-          { key: "1", label: "Option 1" },
-          { key: "2", label: "Option 2" }
-        ]
-      },
-      {
-        key: "g2",
-        label: "Item 2",
-        type: "group",
-        children: [
-          { key: "3", label: "Option 3" },
-          { key: "4", label: "Option 4" }
-        ]
-      }
-    ]
-  }
+  },
+  {
+    key: "configs",
+    label: "配置",
+    icon: <MailOutlined />,
+  },
 ];
 
-
 function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const onClick: MenuProps["onClick"] = (e) => {
-    console.log("click ", e);
+  const onClick: MenuProps["onClick"] = (e: any) => {
+    navigate(RouterMap[e.key]);
   };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider style={{
-        background: "white"
-      }}>
+      <Sider
+        style={{
+          background: "white",
+        }}
+      >
         <Menu
           onClick={onClick}
           defaultSelectedKeys={["1"]}
           defaultOpenKeys={["sub1"]}
-          mode="inline"
+          mode='inline'
           items={items}
-          theme="light"
+          theme='light'
         />
       </Sider>
       <Layout>
         {/*<Header />*/}
         <Content>
-          <div>
+          <div
+            style={{
+              padding: "20px",
+            }}
+          >
             <Outlet />
           </div>
         </Content>

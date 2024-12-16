@@ -4,7 +4,7 @@ go 1.23.3
 
 require (
 	github.com/gin-gonic/gin v1.10.0
-	github.com/kiririx/easy-config v0.1.3
+	github.com/kiririx/easy-config v0.1.5
 	github.com/kiririx/krutils v0.1.24
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tidwall/gjson v1.18.0

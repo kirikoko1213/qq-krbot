@@ -1,9 +1,9 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App from "./App.tsx";
+import App, { RouterMap } from "./App.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { AIConfig } from "./page/ai-config/AIConfig.tsx";
+import { Configs } from "./page/configs/Configs.tsx";
 
 
 const router = createBrowserRouter([
@@ -12,8 +12,12 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       {
-        path: "/ai-config",
-        element: <AIConfig />
+        path: RouterMap.configs,
+        element: <Configs />
+      },
+      {
+        path: RouterMap.trigger_config,
+        element: <Configs />
       }
     ]
   }

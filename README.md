@@ -3,6 +3,10 @@
 ## 概述
 这是一个qq机器人，使用onebot11协议
 
+## 必要的东西
+- MySQL
+- 拥有onebot11协议的机器人引擎(如LLOneBot)
+
 ## 功能
 - AI回复：需接入OpenAI接口
 - 群复读机
@@ -36,9 +40,7 @@ main.onebot.http.url=
 #proxy.url=http://192.168.56.1:7890
 # 机器人的qq号
 main.qq.account=
-# 消息存储引擎 db是数据库 memory是内存
-main.storage.engine=db
-# 如果存储引擎是mysql，以下是认证信息
+# MySQL认证信息
 main.mysql.username=root
 main.mysql.password=passwd
 main.mysql.host=10.0.0.1

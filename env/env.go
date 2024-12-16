@@ -36,6 +36,10 @@ func Get(key string) string {
 	return v
 }
 
+func List() []ec.Item {
+	return DbEnv.List()
+}
+
 func GetWithDB(key string) string {
 	return DbEnv.Get(key)
 }

@@ -11,13 +11,23 @@ func NewConfigAPI() *ConfigAPI {
 	return &ConfigAPI{}
 }
 
+func (*ConfigAPI) List(c *gin.Context) {
+	var list []map[string]string
+	for _, item := range env.List() {
+		list = append(list, map[string]string{
+			"key":   item.Key,
+			"value": item.Value,
+		})
+	}
+	ResultSuccess(c, list)
+}
+
 func (*ConfigAPI) Get(c *gin.Context) {
 	key := c.Query("key")
-	mode := c.Query("mode")
 
-	c.JSON(200, gin.H{
+	ResultSuccess(c, gin.H{
 		"key":   key,
-		"value": env.GetWithMode(mode, key),
+		"value": env.Get(key),
 	})
 }
 
@@ -25,20 +35,32 @@ func (*ConfigAPI) Set(c *gin.Context) {
 	req := &SetConfigReq{}
 	err := c.ShouldBindJSON(req)
 	if err != nil {
-		c.JSON(500, gin.H{
-			"message": err.Error(),
-		})
+		ResultError(c, "00001", err)
 		return
 	}
-	env.SetWithMode(req.Mode, req.Key, req.Value)
-	c.JSON(200, gin.H{
-		"key":   req.Key,
+	env.SetWithDB(req.Key, req.Value)
+	ResultSuccess(c, gin.H{
+		"name":  req.Key,
 		"value": req.Value,
 	})
 }
 
+func (*ConfigAPI) Remove(c *gin.Context) {
+	req := &RemoveConfigReq{}
+	err := c.ShouldBindJSON(req)
+	if err != nil {
+		ResultError(c, "00002", err)
+		return
+	}
+	env.DbEnv.Remove(req.Key)
+	ResultSuccess(c, gin.H{})
+}
+
 type SetConfigReq struct {
-	Key   string   `json:"key"`
-	Value string   `json:"value"`
-	Mode  env.Mode `json:"mode"`
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type RemoveConfigReq struct {
+	Key string `json:"key"`
 }
