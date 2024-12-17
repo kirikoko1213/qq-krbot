@@ -2,6 +2,7 @@ package repo
 
 import (
 	"gorm.io/gorm"
+	"time"
 )
 
 type DynamicTriggerModel struct {
@@ -70,13 +71,23 @@ func (*DynamicTriggerRepo) GetMaxSequence() (int64, error) {
 }
 
 func (d *DynamicTriggerRepo) Save(model *DynamicTriggerModel) (*DynamicTriggerModel, error) {
-	// 使用 GORM 的 Save 方法将数据保存或更新到数据库
-	maxSequence, err := d.GetMaxSequence()
-	if err != nil {
-		return nil, err
+	if model.ID != 0 {
+		dbModel, err := d.FindOne(int64(model.ID))
+		if err != nil {
+			return nil, err
+		}
+		model.UpdatedAt = time.Now()
+		model.CreatedAt = dbModel.CreatedAt
+	} else {
+		model.CreatedAt = time.Now()
+		// 使用 GORM 的 Save 方法将数据保存或更新到数据库
+		maxSequence, err := d.GetMaxSequence()
+		if err != nil {
+			return nil, err
+		}
+		model.Sequence = maxSequence + 1
 	}
-	model.Sequence = maxSequence + 1
-	if err = Sql.Save(model).Error; err != nil {
+	if err := Sql.Save(model).Error; err != nil {
 		return nil, err // 如果保存或更新失败，返回 nil 和错误信息
 	}
 	return model, nil // 保存或更新成功，返回保存后的模型和 nil

@@ -115,10 +115,10 @@ export const Triggers: FC<{}> = (props) => {
       });
   };
 
-  const onLoadForm = (key: string) => {
+  const onLoadForm = (id: string) => {
     request
       .get<RequestResult<DataType>>("/api/dynamic-trigger/find", {
-        key,
+        id,
       })
       .then((resp) => {
         formRef.setFieldValue("id", resp.data?.ID);
