@@ -67,6 +67,6 @@ func (m *DynamicTriggerHandler) RegisterTriggers(f func(messageType string, cond
 		return
 	}
 	for _, model := range list {
-		f(model.TriggerType, getCondition(&model), getCallback(&model))
+		f(model.MessageType, getCondition(&model), getCallback(&model))
 	}
 }

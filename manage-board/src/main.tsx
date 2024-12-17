@@ -4,6 +4,7 @@ import "./index.css";
 import App, { RouterMap } from "./App.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Configs } from "./page/configs/Configs.tsx";
+import { Triggers } from "./page/configs/Triggers.tsx";
 
 
 const router = createBrowserRouter([
@@ -17,7 +18,7 @@ const router = createBrowserRouter([
       },
       {
         path: RouterMap.trigger_config,
-        element: <Configs />
+        element: <Triggers />
       }
     ]
   }

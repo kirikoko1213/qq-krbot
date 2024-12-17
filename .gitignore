@@ -1,5 +1,5 @@
 manage-board/node_modules
-manage-board/dist
+static
 .idea
 manage-board/.idea
 config.properties

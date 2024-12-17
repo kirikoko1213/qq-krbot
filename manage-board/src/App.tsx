@@ -14,7 +14,7 @@ export const RouterMap: any = {
 
 const items: MenuItem[] = [
   {
-    key: "trigger-config",
+    key: "trigger_config",
     label: "触发器",
     icon: <MailOutlined />,
   },

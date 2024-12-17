@@ -45,12 +45,12 @@ func Bot(c *gin.Context) {
 			CqParam:  param,
 			MsgQueue: msgQueue,
 		}
-		for _, tg := range trigger.Triggers {
+		var handle = func(tg *trigger.Trigger) bool {
 			if tg.MessageType == param.MessageType && tg.Condition(triggerParameter) {
 				msg, err := tg.Callback(triggerParameter)
 				if err != nil {
 					Error(err, param.GroupId)
-					return
+					return true
 				}
 				switch tg.MessageType {
 				case "pr":
@@ -63,7 +63,20 @@ func Bot(c *gin.Context) {
 				case "gr":
 					sendToGroup(param.GroupId, msg)
 				}
-				break
+				return true
+			}
+			return false
+		}
+		for _, tg := range trigger.Triggers {
+			isOver := handle(&tg)
+			if isOver {
+				return
+			}
+		}
+		for _, tg := range trigger.DynamicTriggers {
+			isOver := handle(&tg)
+			if isOver {
+				return
 			}
 		}
 	}

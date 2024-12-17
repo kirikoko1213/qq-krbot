@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	Triggers []Trigger
+	Triggers        []Trigger
+	DynamicTriggers []Trigger
 )
 
 const at = "at" // 群组里@某人的触发器
@@ -29,6 +30,20 @@ func addTrigger(messageType string, condition func(*req.TriggerParameter) bool, 
 	})
 }
 
+func addDynamicTrigger(messageType string, condition func(*req.TriggerParameter) bool, callback func(*req.TriggerParameter) (string, error)) {
+	DynamicTriggers = append(DynamicTriggers, Trigger{
+		MessageType: messageType,
+		Condition:   condition,
+		Callback:    callback,
+	})
+}
+
+func ResetTriggers() {
+	// 添加来自数据库的trigger
+	clear(DynamicTriggers)
+	handler.NewDynamicTriggerHandler().RegisterTriggers(addDynamicTrigger)
+}
+
 func init() {
 	addTrigger(pr, Help, resp.Help)                               // 帮助
 	addTrigger(at, Help, resp.Help)                               // 帮助
@@ -44,6 +59,5 @@ func init() {
 	addTrigger(gr, Repeat, resp.Repeat)
 	addTrigger(gr, ExecSQL, resp.ExecSQL)
 	addTrigger(gr, SmartReply, resp.SmartReply)
-	// 添加来自数据库的trigger
-	handler.NewDynamicTriggerHandler().RegisterTriggers(addTrigger)
+	ResetTriggers()
 }

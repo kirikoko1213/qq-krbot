@@ -18,4 +18,10 @@ func RegisterRouter(r *gin.Engine) {
 
 	aiAPI := NewAiAPI()
 	r.POST("/api/ai/clear-setting-cache", aiAPI.ClearAISettingCache)
+
+	dynamicTriggerAPI := NewDynamicTriggerAPI()
+	r.GET("/api/dynamic-trigger/list", dynamicTriggerAPI.List)
+	r.POST("/api/dynamic-trigger/save", dynamicTriggerAPI.Save)
+	r.POST("/api/dynamic-trigger/delete", dynamicTriggerAPI.Delete)
+	r.GET("/api/dynamic-trigger/find", dynamicTriggerAPI.Find)
 }
