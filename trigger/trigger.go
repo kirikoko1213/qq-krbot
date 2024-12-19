@@ -1,7 +1,6 @@
 package trigger
 
 import (
-	"qq-krbot/handler"
 	"qq-krbot/req"
 	"qq-krbot/trigger/resp"
 )
@@ -41,7 +40,7 @@ func addDynamicTrigger(messageType string, condition func(*req.TriggerParameter)
 func ResetTriggers() {
 	// 添加来自数据库的trigger
 	clear(DynamicTriggers)
-	handler.NewDynamicTriggerHandler().RegisterTriggers(addDynamicTrigger)
+	resp.NewDynamicTriggerHandler().RegisterTriggers(addDynamicTrigger)
 }
 
 func init() {
@@ -52,12 +51,8 @@ func init() {
 	addTrigger(gr, OffWorkTimeAnnounce, resp.OffWorkTimeAnnounce) // 下班时间
 	addTrigger(at, HolidayAnnounce, resp.HolidayAnnounce)         // 假期倒计时
 	addTrigger(at, AISetting, resp.AISetting)                     // ai角色设置
-	addTrigger(at, RankOfGroupMsg, resp.RankOfGroupMsg)           // 群吹水排名
-	addTrigger(at, MyWifeOfGroup, resp.MyWifeOfGroup)             // 群吹水排名
-	addTrigger(at, CharacterPortrait, resp.CharacterPortrait)     // 群吹水排名
 	addTrigger(at, ChatGPT, resp.ChatGPT)
 	addTrigger(gr, Repeat, resp.Repeat)
-	addTrigger(gr, ExecSQL, resp.ExecSQL)
 	addTrigger(gr, SmartReply, resp.SmartReply)
 	ResetTriggers()
 }

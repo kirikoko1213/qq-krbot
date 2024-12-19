@@ -1,4 +1,4 @@
-package handler
+package resp
 
 import (
 	"github.com/kiririx/krutils/strx"
@@ -7,13 +7,7 @@ import (
 	"qq-krbot/req"
 )
 
-type DynamicTriggerHandler struct{}
-
-func NewDynamicTriggerHandler() *DynamicTriggerHandler {
-	return &DynamicTriggerHandler{}
-}
-
-func getCondition(model *repo.DynamicTriggerModel) func(*req.TriggerParameter) bool {
+func GetCondition(model *repo.DynamicTriggerModel) func(*req.TriggerParameter) bool {
 	switch model.ConditionType {
 	case "equals":
 		return func(param *req.TriggerParameter) bool {
@@ -25,11 +19,11 @@ func getCondition(model *repo.DynamicTriggerModel) func(*req.TriggerParameter) b
 			return strx.Contains(param.CqParam.KrMessage, model.ConditionValue)
 		}
 
-	case "startWith":
+	case "startsWith":
 		return func(param *req.TriggerParameter) bool {
 			return strx.StartWith(param.CqParam.KrMessage, model.ConditionValue)
 		}
-	case "endWith":
+	case "endsWith":
 		return func(param *req.TriggerParameter) bool {
 			return strx.EndWith(param.CqParam.KrMessage, model.ConditionValue)
 		}
@@ -37,26 +31,30 @@ func getCondition(model *repo.DynamicTriggerModel) func(*req.TriggerParameter) b
 	panic("不存在的conditionType")
 }
 
-func getCallback(model *repo.DynamicTriggerModel) func(*req.TriggerParameter) (string, error) {
+func GetCallback(model *repo.DynamicTriggerModel) func(*req.TriggerParameter) (string, error) {
 	switch model.TriggerContentType {
 	case "text":
 		return func(param *req.TriggerParameter) (string, error) {
-			return model.ConditionValue, nil
+			return model.TriggerContent, nil
 		}
 	case "api":
 		return func(param *req.TriggerParameter) (string, error) {
-			return model.ConditionValue, nil
+			return model.TriggerContent, nil
 		}
 	case "image":
 		return func(param *req.TriggerParameter) (string, error) {
-			return model.ConditionValue, nil
+			return model.TriggerContent, nil
 		}
-	case "func":
-		return func(param *req.TriggerParameter) (string, error) {
-			return model.ConditionValue, nil
-		}
+	case "handler":
+		return GetHandler(model.TriggerContent).Func
 	}
 	panic("不存在的triggerContentType")
+}
+
+type DynamicTriggerHandler struct{}
+
+func NewDynamicTriggerHandler() *DynamicTriggerHandler {
+	return &DynamicTriggerHandler{}
 }
 
 func (m *DynamicTriggerHandler) RegisterTriggers(f func(messageType string, condition func(*req.TriggerParameter) bool, callback func(*req.TriggerParameter) (string, error))) {
@@ -67,6 +65,6 @@ func (m *DynamicTriggerHandler) RegisterTriggers(f func(messageType string, cond
 		return
 	}
 	for _, model := range list {
-		f(model.MessageType, getCondition(&model), getCallback(&model))
+		f(model.MessageType, GetCondition(&model), GetCallback(&model))
 	}
 }

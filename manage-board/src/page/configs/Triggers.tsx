@@ -17,6 +17,8 @@ interface DataType {
 export const Triggers: FC<{}> = (props) => {
   const [open, setOpen] = useState<boolean>(false);
   const [tableData, setTableData] = useState<any[]>([]);
+  const [handlers, setHandlers] = useState<string[]>([]);
+  const [triggerContentTypeState, setTriggerContentTypeState] = useState();
   const columns: TableProps<DataType>["columns"] = useMemo(() => {
     return [
       {
@@ -33,17 +35,17 @@ export const Triggers: FC<{}> = (props) => {
               {value}
             </a>
           );
-        },
+        }
       },
       {
         title: "消息类型",
         dataIndex: "messageType",
-        key: "messageType",
+        key: "messageType"
       },
       {
         title: "条件类型",
         dataIndex: "conditionType",
-        key: "conditionType",
+        key: "conditionType"
       },
       {
         title: "operation",
@@ -56,7 +58,7 @@ export const Triggers: FC<{}> = (props) => {
               onConfirm={() => {
                 request
                   .post("/api/dynamic-trigger/delete", {
-                    id: record.ID,
+                    id: record.ID
                   })
                   .then(() => {
                     onLoadTable();
@@ -66,8 +68,8 @@ export const Triggers: FC<{}> = (props) => {
               <Button type={"link"}>删除</Button>
             </Popconfirm>
           );
-        },
-      },
+        }
+      }
     ];
   }, []);
 
@@ -92,6 +94,12 @@ export const Triggers: FC<{}> = (props) => {
     });
   };
 
+  const onLoadHandlers = () => {
+    request.get("/api/dynamic-trigger/get-functions", {}).then(resp => {
+      setHandlers(resp.data)
+    });
+  };
+
   const onOk = () => {
     if (!formRef.getFieldValue("messageType") || !formRef.getFieldValue("conditionValue") || !formRef.getFieldValue("triggerContent")) {
       alert("配置不能为空");
@@ -105,7 +113,7 @@ export const Triggers: FC<{}> = (props) => {
         conditionValue: formRef.getFieldValue("conditionValue"),
         triggerContentType: formRef.getFieldValue("triggerContentType"),
         triggerContent: formRef.getFieldValue("triggerContent"),
-        description: formRef.getFieldValue("description"),
+        description: formRef.getFieldValue("description")
       })
       .then((response) => {
         onClose();
@@ -118,7 +126,7 @@ export const Triggers: FC<{}> = (props) => {
   const onLoadForm = (id: string) => {
     request
       .get<RequestResult<DataType>>("/api/dynamic-trigger/find", {
-        id,
+        id
       })
       .then((resp) => {
         formRef.setFieldValue("id", resp.data?.ID);
@@ -139,6 +147,7 @@ export const Triggers: FC<{}> = (props) => {
 
   useEffect(() => {
     onLoadTable();
+    onLoadHandlers();
   }, []);
 
   return (
@@ -155,8 +164,14 @@ export const Triggers: FC<{}> = (props) => {
       >
         <Form
           form={formRef}
+          onValuesChange={values => {
+            if (values.triggerContentType) {
+              setTriggerContentTypeState(values.triggerContentType)
+            }
+            formRef.setFieldsValue(values)
+          }}
           labelCol={{
-            span: 4,
+            span: 4
           }}
         >
           <Form.Item name={"id"} hidden>
@@ -175,7 +190,10 @@ export const Triggers: FC<{}> = (props) => {
             <Select options={triggerContentType} />
           </Form.Item>
           <Form.Item name={"triggerContent"} label={"触发内容"} required>
-            <TextArea />
+            {triggerContentTypeState === "handler" ? <Select options={handlers.map(h => ({
+              label: h,
+              value: h
+            }))} /> : <TextArea />}
           </Form.Item>
           <Form.Item name={"description"} label={"描述"}>
             <TextArea />
@@ -184,7 +202,7 @@ export const Triggers: FC<{}> = (props) => {
       </Modal>
       <div
         style={{
-          margin: "10px 0",
+          margin: "10px 0"
         }}
       >
         <Button type={"primary"} onClick={onAdd}>
@@ -199,72 +217,72 @@ export const Triggers: FC<{}> = (props) => {
 const conditionType = [
   {
     label: "equals",
-    value: "equals",
+    value: "equals"
   },
   {
     label: "notEquals",
-    value: "notEquals",
+    value: "notEquals"
   },
   {
     label: "contains",
-    value: "contains",
+    value: "contains"
   },
   {
     label: "notContains",
-    value: "notContains",
+    value: "notContains"
   },
   {
     label: "startsWith",
-    value: "startsWith",
+    value: "startsWith"
   },
   {
     label: "endsWith",
-    value: "endsWith",
+    value: "endsWith"
   },
   {
     label: "matches",
-    value: "matches",
+    value: "matches"
   },
   {
     label: "notMatches",
-    value: "notMatches",
-  },
+    value: "notMatches"
+  }
 ];
 
 const messageType = [
   {
     label: "pr",
-    value: "pr",
+    value: "pr"
   },
   {
     label: "gr",
-    value: "gr",
+    value: "gr"
   },
   {
     label: "at",
-    value: "at",
-  },
+    value: "at"
+  }
 ];
 
 const triggerContentType = [
   {
     label: "text",
-    value: "text",
+    value: "text"
   },
   {
     label: "image",
-    value: "image",
+    value: "image"
   },
   {
     label: "ai",
-    value: "ai",
+    value: "ai"
   },
   {
     label: "api",
-    value: "api",
+    value: "api"
   },
   {
     label: "handler",
-    value: "handler",
-  },
+    value: "handler"
+  }
 ];

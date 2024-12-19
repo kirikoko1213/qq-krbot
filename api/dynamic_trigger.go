@@ -4,6 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kiririx/krutils/convertx"
 	"qq-krbot/repo"
+	"qq-krbot/trigger"
+	"qq-krbot/trigger/resp"
 )
 
 type DynamicTriggerAPI struct{}
@@ -33,6 +35,7 @@ func (api *DynamicTriggerAPI) Save(c *gin.Context) {
 		ResultError(c, "500", err)
 		return
 	}
+	trigger.ResetTriggers()
 	ResultSuccess(c, nil)
 }
 
@@ -60,4 +63,12 @@ func (api *DynamicTriggerAPI) Find(c *gin.Context) {
 		return
 	}
 	ResultSuccess(c, model)
+}
+
+func (api *DynamicTriggerAPI) GetFunctions(c *gin.Context) {
+	funcNameList := make([]string, 0)
+	for _, handle := range resp.HandlePool {
+		funcNameList = append(funcNameList, handle.Description)
+	}
+	ResultSuccess(c, funcNameList)
 }

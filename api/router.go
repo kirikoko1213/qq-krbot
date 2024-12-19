@@ -24,4 +24,5 @@ func RegisterRouter(r *gin.Engine) {
 	r.POST("/api/dynamic-trigger/save", dynamicTriggerAPI.Save)
 	r.POST("/api/dynamic-trigger/delete", dynamicTriggerAPI.Delete)
 	r.GET("/api/dynamic-trigger/find", dynamicTriggerAPI.Find)
+	r.GET("/api/dynamic-trigger/get-functions", dynamicTriggerAPI.GetFunctions)
 }

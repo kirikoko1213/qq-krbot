@@ -67,13 +67,13 @@ func Bot(c *gin.Context) {
 			}
 			return false
 		}
-		for _, tg := range trigger.Triggers {
+		for _, tg := range trigger.DynamicTriggers {
 			isOver := handle(&tg)
 			if isOver {
 				return
 			}
 		}
-		for _, tg := range trigger.DynamicTriggers {
+		for _, tg := range trigger.Triggers {
 			isOver := handle(&tg)
 			if isOver {
 				return
