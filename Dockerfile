@@ -22,7 +22,7 @@ WORKDIR /root/
 COPY --from=go-builder /app/app .
 
 # Copy the frontend build to nginx
-COPY --from=frontend-builder /app/manage-board/build /usr/share/nginx/html
+COPY --from=frontend-builder /app/manage-board/dist /usr/share/nginx/html
 
 # Configure nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
