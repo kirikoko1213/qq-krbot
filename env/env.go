@@ -3,6 +3,7 @@ package env
 import (
 	"github.com/kiririx/easy-config/ec"
 	"github.com/kiririx/krutils/convertx"
+	"os"
 )
 
 type Mode = string
@@ -29,7 +30,10 @@ func SetWithMode(mode Mode, key string, value string) {
 }
 
 func Get(key string) string {
-	v := PropertiesEnv.Get(key)
+	v := os.Getenv(key)
+	if v == "" {
+		v = PropertiesEnv.Get(key)
+	}
 	if v == "" {
 		v = GetWithDB(key)
 	}
