@@ -7,7 +7,7 @@ COPY . .
 RUN go build -o app
 
 # Stage 2: Build the frontend
-FROM node:14 as frontend-builder
+FROM node:22 as frontend-builder
 WORKDIR /app/manage-board
 COPY manage-board/package.json manage-board/yarn.lock ./
 RUN yarn install
