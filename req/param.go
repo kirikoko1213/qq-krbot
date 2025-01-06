@@ -2,7 +2,6 @@ package req
 
 import (
 	"fmt"
-	"github.com/kiririx/krutils/strx"
 	"qq-krbot/base"
 	"qq-krbot/env"
 	"regexp"
@@ -62,7 +61,7 @@ func (p *Param) Parse() {
 				p.KrMessage = p.RawMessage
 			}
 		}
-		p.KrMessage = strx.TrimSpace(p.KrMessage)
+		p.KrMessage = strings.TrimSpace(p.KrMessage)
 	}
 }
 

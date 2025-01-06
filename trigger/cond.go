@@ -1,51 +1,52 @@
 package trigger
 
 import (
-	"github.com/kiririx/krutils/strx"
+	"github.com/kiririx/krutils/ut"
 	"qq-krbot/env"
 	"qq-krbot/req"
 	"strconv"
+	"strings"
 )
 
 func Help(param *req.TriggerParameter) bool {
-	return strx.Equals(strx.TrimSpace(param.CqParam.KrMessage), "ヘルプ", "帮助", "help", "?", "？", "")
+	return ut.String().In(strings.TrimSpace(param.CqParam.KrMessage), "ヘルプ", "帮助", "help", "?", "？", "")
 }
 
 func AISetting(param *req.TriggerParameter) bool {
-	return strx.StartWith(param.CqParam.KrMessage, "设定", "群角色设定")
+	return ut.String().StartWith(param.CqParam.KrMessage, "设定", "群角色设定")
 }
 
 func Health(param *req.TriggerParameter) bool {
-	return strx.Equals(strx.TrimSpace(param.CqParam.KrMessage), "ping")
+	return ut.String().In(strings.TrimSpace(param.CqParam.KrMessage), "ping")
 }
 
 func OffWorkTimeAnnounce(param *req.TriggerParameter) bool {
-	return strx.Equals(strx.TrimSpace(param.CqParam.KrMessage), "报时", "11")
+	return ut.String().In(strings.TrimSpace(param.CqParam.KrMessage), "报时", "11")
 }
 
 func HolidayAnnounce(param *req.TriggerParameter) bool {
-	return strx.Equals(param.CqParam.KrMessage, "假期", "假期倒计时")
+	return ut.String().In(param.CqParam.KrMessage, "假期", "假期倒计时")
 }
 
 func RankOfGroupMsg(param *req.TriggerParameter) bool {
-	text := strx.TrimSpace(param.CqParam.KrMessage)
-	return strx.Equals(text, "排名")
+	text := strings.TrimSpace(param.CqParam.KrMessage)
+	return text == "排名"
 }
 
 func MyWifeOfGroup(param *req.TriggerParameter) bool {
-	text := strx.TrimSpace(param.CqParam.KrMessage)
-	return strx.Equals(text, "群老婆")
+	text := strings.TrimSpace(param.CqParam.KrMessage)
+	return ut.String().In(text, "群老婆")
 }
 
 func ChatGPT(param *req.TriggerParameter) bool {
-	if strx.Contains(env.Get("block.account"), strconv.FormatInt(param.CqParam.UserId, 10)) {
+	if ut.String().Contains(env.Get("block.account"), strconv.FormatInt(param.CqParam.UserId, 10)) {
 		return false
 	}
 	return true
 }
 
 func SmartReply(param *req.TriggerParameter) bool {
-	return strx.Contains(param.CqParam.KrMessage, "人生", "不想上班", "好累", "工作")
+	return ut.String().Contains(param.CqParam.KrMessage, "人生", "不想上班", "好累", "工作")
 }
 
 func Repeat(param *req.TriggerParameter) bool {
@@ -58,9 +59,9 @@ func Repeat(param *req.TriggerParameter) bool {
 }
 
 func ExecSQL(param *req.TriggerParameter) bool {
-	return strx.StartWith(param.CqParam.KrMessage, "-sql ")
+	return ut.String().StartWith(param.CqParam.KrMessage, "-sql ")
 }
 
 func CharacterPortrait(param *req.TriggerParameter) bool {
-	return strx.Equals(param.CqParam.KrMessage, "人格分析")
+	return ut.String().In(param.CqParam.KrMessage, "人格分析")
 }

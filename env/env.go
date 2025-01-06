@@ -2,7 +2,7 @@ package env
 
 import (
 	"github.com/kiririx/easy-config/ec"
-	"github.com/kiririx/krutils/convertx"
+	"github.com/kiririx/krutils/ut"
 	"os"
 )
 
@@ -62,7 +62,7 @@ func init() {
 	PropertiesEnv = ec.Initialize(ec.NewPropertiesStorage("./config.properties"), "main")
 	DbEnv = ec.Initialize(ec.NewMySQLStorage(
 		PropertiesEnv.Get("mysql.host"),
-		convertx.StringToInt(PropertiesEnv.Get("mysql.port")),
+		ut.Convert(PropertiesEnv.Get("mysql.port")).IntValue(),
 		PropertiesEnv.Get("mysql.username"),
 		PropertiesEnv.Get("mysql.password"),
 		PropertiesEnv.Get("mysql.database"),

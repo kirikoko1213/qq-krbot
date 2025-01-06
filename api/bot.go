@@ -3,8 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/kiririx/krutils/httpx"
-	"github.com/kiririx/krutils/strx"
+	"github.com/kiririx/krutils/ut"
 	"log"
 	"net/http"
 	"qq-krbot/base"
@@ -54,7 +53,7 @@ func Bot(c *gin.Context) {
 				}
 				switch tg.MessageType {
 				case "pr":
-					qqutil.SendPrivateMessage(strx.ToStr(param.UserId), qqutil.QQMsg{
+					qqutil.SendPrivateMessage(ut.Convert(param.UserId).StringValue(), qqutil.QQMsg{
 						Message: msg,
 						CQ:      tg.MessageType,
 					})
@@ -84,8 +83,8 @@ func Bot(c *gin.Context) {
 
 func sendToGroupAt(groupId int64, msg string, userId int64) {
 	url := env.Get("onebot.http.url") + "/send_group_msg"
-	sendGroupId := strx.ToStr(groupId)
-	_, err := httpx.Client().Timeout(time.Second*30).PostString(url, map[string]any{
+	sendGroupId := ut.Convert(groupId).StringValue()
+	_, err := ut.HttpClient().Timeout(time.Second*30).PostString(url, map[string]any{
 		"group_id": sendGroupId,
 		"message":  fmt.Sprintf("[CQ:at,qq=%v] %s", userId, msg),
 	})
@@ -97,8 +96,8 @@ func sendToGroupAt(groupId int64, msg string, userId int64) {
 
 func sendToGroup(groupId int64, msg string) {
 	url := env.Get("onebot.http.url") + "/send_group_msg"
-	sendGroupId := strx.ToStr(groupId)
-	_, err := httpx.Client().Timeout(time.Second*30).PostString(url, map[string]any{
+	sendGroupId := ut.Convert(groupId).StringValue()
+	_, err := ut.HttpClient().Timeout(time.Second*30).PostString(url, map[string]any{
 		"group_id": sendGroupId,
 		"message":  msg,
 	})

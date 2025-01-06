@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/kiririx/krutils/convertx"
+	"github.com/kiririx/krutils/ut"
 	"qq-krbot/repo"
 	"qq-krbot/trigger"
 	"qq-krbot/trigger/resp"
@@ -57,7 +57,7 @@ func (api *DynamicTriggerAPI) Delete(c *gin.Context) {
 func (api *DynamicTriggerAPI) Find(c *gin.Context) {
 	rp := repo.NewDynamicTriggerRepo()
 	id := c.Query("id")
-	model, err := rp.FindOne(convertx.StringToInt64(id))
+	model, err := rp.FindOne(ut.Convert(id).Int64Value())
 	if err != nil {
 		ResultError(c, "500", err)
 		return

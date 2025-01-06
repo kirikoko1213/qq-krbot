@@ -1,8 +1,6 @@
 package handler
 
-import (
-	"github.com/kiririx/krutils/httpx"
-)
+import "github.com/kiririx/krutils/ut"
 
 type DNFHandler struct {
 }
@@ -18,7 +16,7 @@ func NewDNFHandler() *DNFHandler {
 
 func (d *DNFHandler) Gold() ([]DNFGold, error) {
 	url := "http://www.uu898.com/ashx/GameRetail.ashx?act=a001&g=95&a=2335&s=25080&c=-3&cmp=-1&_t=1639304944162"
-	resp, err := httpx.Client().GetJSON(url, nil)
+	resp, err := ut.HttpClient().GetJSON(url, nil)
 	if err != nil {
 		return nil, err
 	}

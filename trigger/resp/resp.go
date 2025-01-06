@@ -2,7 +2,7 @@ package resp
 
 import (
 	"fmt"
-	"github.com/kiririx/krutils/strx"
+	"github.com/kiririx/krutils/ut"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"qq-krbot/env"
@@ -130,8 +130,8 @@ func Repeat(param *req.TriggerParameter) (string, error) {
 }
 func AISetting(param *req.TriggerParameter) (string, error) {
 	cqParam := param.CqParam
-	if strx.StartWith(cqParam.KrMessage, "设定") {
-		setting := strx.SubStr(strx.TrimSpace(cqParam.KrMessage), 2, strx.Len(cqParam.KrMessage))
+	if ut.String().StartWith(cqParam.KrMessage, "设定") {
+		setting := ut.String().SubStrWithRune(strings.TrimSpace(cqParam.KrMessage), 2, ut.String().LenWithRune(cqParam.KrMessage))
 		if setting == "" {
 			return "(当前设定): " + env.Get(env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId)), nil
 		}
@@ -139,8 +139,8 @@ func AISetting(param *req.TriggerParameter) (string, error) {
 		handler.AIHandler.ClearSetting(cqParam)
 		return "角色设定成功！", nil
 	}
-	if strx.StartWith(cqParam.KrMessage, "群角色设定") {
-		setting := strx.SubStr(strx.TrimSpace(cqParam.KrMessage), 5, strx.Len(cqParam.KrMessage))
+	if ut.String().StartWith(cqParam.KrMessage, "群角色设定") {
+		setting := ut.String().SubStrWithRune(strings.TrimSpace(cqParam.KrMessage), 5, ut.String().LenWithRune(cqParam.KrMessage))
 		if setting == "" {
 			return "(当前设定): " + env.Get(env.AITalkGroupPrompts(cqParam.GroupId)), nil
 		}
@@ -204,7 +204,7 @@ func SmartReply(param *req.TriggerParameter) (string, error) {
 }
 
 func ExecSQL(param *req.TriggerParameter) (string, error) {
-	sql := strx.SubStr(strx.TrimSpace(param.CqParam.KrMessage), 4, strx.Len(param.CqParam.KrMessage))
+	sql := ut.String().SubStrWithRune(strings.TrimSpace(param.CqParam.KrMessage), 4, ut.String().LenWithRune(param.CqParam.KrMessage))
 	query, err := handler.ExecuteSelectQuery(repo.Sql, sql)
 	if err != nil {
 		return "", err

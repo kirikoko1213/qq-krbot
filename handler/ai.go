@@ -1,14 +1,13 @@
 package handler
 
 import (
-	"github.com/kiririx/krutils/convertx"
-	"github.com/kiririx/krutils/httpx"
-	"github.com/kiririx/krutils/strx"
+	"github.com/kiririx/krutils/ut"
 	"github.com/tidwall/gjson"
 	"qq-krbot/env"
 	lg "qq-krbot/logx"
 	"qq-krbot/qqutil"
 	"qq-krbot/req"
+	"strings"
 	"time"
 )
 
@@ -64,7 +63,7 @@ func (*_AIHandler) SingleTalk(prompts, message string) (string, error) {
 	}()
 	timeout := env.Get("chatgpt.timeout")
 	proxyURL := env.Get("proxy.url")
-	cli := httpx.Client()
+	cli := ut.HttpClient()
 	if proxyURL != "" {
 		cli.Proxy(proxyURL)
 	}
@@ -76,7 +75,7 @@ func (*_AIHandler) SingleTalk(prompts, message string) (string, error) {
 	messageArr := make([]map[string]string, 0)
 	messageArr = append(messageArr, map[string]string{"role": "system", "content": prompts})
 	messageArr = append(messageArr, map[string]string{"role": "user", "content": message})
-	json, err := cli.Timeout(time.Second*time.Duration(convertx.StringToInt64(timeout))).Headers(map[string]string{
+	json, err := cli.Timeout(time.Second*time.Duration(ut.Convert(timeout).Int64Value())).Headers(map[string]string{
 		"Content-Type":  "application/json",
 		"Authorization": "Bearer " + env.Get("chatgpt.key"),
 	}).PostString(apiServerURL+"/v1/chat/completions", map[string]any{
@@ -91,7 +90,7 @@ func (*_AIHandler) SingleTalk(prompts, message string) (string, error) {
 	if content == "" {
 		lg.Log.WithField("AI-response: ", json).Error("AI 回复为空")
 	}
-	return strx.TrimSpace(content), nil
+	return strings.TrimSpace(content), nil
 }
 
 func (*_AIHandler) Do(param *req.Param) (string, error) {
@@ -103,7 +102,7 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 	storage := getStorage()
 	timeout := env.Get("chatgpt.timeout")
 	proxyURL := env.Get("proxy.url")
-	cli := httpx.Client()
+	cli := ut.HttpClient()
 	if proxyURL != "" {
 		cli.Proxy(proxyURL)
 	}
@@ -118,7 +117,7 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 		return "", err
 	}
 
-	json, err := cli.Timeout(time.Second*time.Duration(convertx.StringToInt64(timeout))).Headers(map[string]string{
+	json, err := cli.Timeout(time.Second*time.Duration(ut.Convert(timeout).Int64Value())).Headers(map[string]string{
 		"Content-Type":  "application/json",
 		"Authorization": "Bearer " + env.Get("chatgpt.key"),
 	}).PostString(apiServerURL+"/v1/chat/completions", map[string]any{
@@ -143,7 +142,7 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 		return "", err
 	}
 
-	return strx.TrimSpace(content), err
+	return strings.TrimSpace(content), err
 }
 
 type Storage interface {

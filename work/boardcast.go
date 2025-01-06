@@ -2,8 +2,7 @@ package work
 
 import (
 	"fmt"
-	"github.com/kiririx/krutils/asyncx"
-	"github.com/kiririx/krutils/convertx"
+	"github.com/kiririx/krutils/ut"
 	"qq-krbot/env"
 	"qq-krbot/handler"
 	"qq-krbot/qqutil"
@@ -16,10 +15,10 @@ var hour = 8
 var minute = 0
 
 func Boardcast() {
-	go asyncx.ScheduleTask("0 8 * * *", rankTask)
-	go asyncx.ScheduleTask("0 11 * * 1-5", takeoutTips)
-	go asyncx.ScheduleTask("40 16 * * 1-5", workOffTips)
-	go asyncx.ScheduleTask("20 17 * * 1-5", workOffTips)
+	go ut.Async().ScheduleTask("0 8 * * *", rankTask)
+	go ut.Async().ScheduleTask("0 11 * * 1-5", takeoutTips)
+	go ut.Async().ScheduleTask("40 16 * * 1-5", workOffTips)
+	go ut.Async().ScheduleTask("20 17 * * 1-5", workOffTips)
 }
 
 func takeoutTips() {
@@ -30,7 +29,7 @@ func takeoutTips() {
 	botName := env.Get("bot.name")
 	groupIdArr := strings.Split(groupIdStrings, ",")
 	for _, groupIdStr := range groupIdArr {
-		groupId := convertx.StringToInt64(groupIdStr)
+		groupId := ut.Convert(groupIdStr).Int64Value()
 		handler.OneBotHandler.SendGroupMsg(groupId, fmt.Sprintf("%s提醒你该点外卖了！", botName))
 	}
 }
