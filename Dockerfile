@@ -4,7 +4,7 @@
 FROM golang:1.23 as go-builder
 WORKDIR /app
 COPY . .
-RUN go build -o app
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o app
 
 # Stage 2: Build the frontend
 FROM node:22 as frontend-builder
@@ -16,10 +16,11 @@ RUN yarn run build
 
 # Stage 3: Create the final image
 FROM nginx:alpine
-WORKDIR /root/
+WORKDIR /app
 
 # Copy the Go application
 COPY --from=go-builder /app/app .
+RUN chmod +x /app/app
 
 # Copy the frontend build to nginx
 COPY --from=frontend-builder /app/manage-board/dist /usr/share/nginx/html
