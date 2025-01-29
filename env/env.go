@@ -1,9 +1,10 @@
 package env
 
 import (
+	"os"
+
 	"github.com/kiririx/easy-config/ec"
 	"github.com/kiririx/krutils/ut"
-	"os"
 )
 
 type Mode = string
@@ -52,8 +53,6 @@ func SetWithDB(key string, value string) {
 	DbEnv.Set(key, value)
 }
 
-var OneBotURL string
-
 var PropertiesEnv ec.Handler
 
 var DbEnv ec.Handler
@@ -61,11 +60,10 @@ var DbEnv ec.Handler
 func init() {
 	PropertiesEnv = ec.Initialize(ec.NewPropertiesStorage("./config.properties"), "main")
 	DbEnv = ec.Initialize(ec.NewMySQLStorage(
-		PropertiesEnv.Get("mysql.host"),
-		ut.Convert(PropertiesEnv.Get("mysql.port")).IntValue(),
-		PropertiesEnv.Get("mysql.username"),
-		PropertiesEnv.Get("mysql.password"),
-		PropertiesEnv.Get("mysql.database"),
+		Get("mysql.host"),
+		ut.Convert(Get("mysql.port")).IntValue(),
+		Get("mysql.username"),
+		Get("mysql.password"),
+		Get("mysql.database"),
 	), "main")
-	OneBotURL = PropertiesEnv.Get("onebot.http.url")
 }

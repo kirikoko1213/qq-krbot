@@ -2,10 +2,11 @@ package qqutil
 
 import (
 	"fmt"
-	"github.com/kiririx/krutils/ut"
 	"log"
 	"qq-krbot/env"
 	"time"
+
+	"github.com/kiririx/krutils/ut"
 )
 
 type QQMsg struct {
@@ -18,7 +19,7 @@ func SendPrivateMessage(targetQQ string, msg QQMsg) {
 	if msg.CQ == "image" && msg.FileURL == "" {
 		return
 	}
-	url := env.OneBotURL + "/send_private_msg"
+	url := env.Get("onebot.http.url") + "/send_private_msg"
 	_, err := ut.HttpClient().Timeout(time.Second*30).Headers(map[string]string{
 		"content-type": "application/json",
 	}).PostString(url, map[string]any{

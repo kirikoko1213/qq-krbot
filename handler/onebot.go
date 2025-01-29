@@ -2,10 +2,11 @@ package handler
 
 import (
 	"fmt"
-	"github.com/kiririx/krutils/ut"
 	"qq-krbot/env"
 	lg "qq-krbot/logx"
 	"time"
+
+	"github.com/kiririx/krutils/ut"
 )
 
 type _OneBotHandler struct {
@@ -20,7 +21,7 @@ type GroupMemberInfo struct {
 }
 
 func (receiver _OneBotHandler) GetGroupMemberInfo(groupId, qqAccount int64, noCache bool) (GroupMemberInfo, error) {
-	apiURL := fmt.Sprintf("%s%s", env.OneBotURL, "/get_group_member_info")
+	apiURL := fmt.Sprintf("%s%s", env.Get("onebot.http.url"), "/get_group_member_info")
 	response, err := ut.HttpClient().GetJSON(apiURL, map[string]string{
 		"group_id": fmt.Sprintf("%d", groupId),
 		"user_id":  fmt.Sprintf("%d", qqAccount),
@@ -40,7 +41,7 @@ func (receiver _OneBotHandler) GetGroupMemberInfo(groupId, qqAccount int64, noCa
 }
 
 func (receiver _OneBotHandler) SendGroupMsg(groupId int64, msg string) {
-	url := env.OneBotURL + "/send_group_msg"
+	url := env.Get("onebot.http.url") + "/send_group_msg"
 	sendGroupId := ut.Convert(groupId).StringValue()
 	_, err := ut.HttpClient().Timeout(time.Second*10).PostString(url, map[string]any{
 		"group_id": sendGroupId,
