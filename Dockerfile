@@ -18,6 +18,11 @@ RUN yarn run build
 FROM nginx:alpine
 WORKDIR /app
 
+# Install supervisord
+RUN apk add --no-cache supervisor && \
+    mkdir -p /var/log/nginx && \
+    mkdir -p /etc/supervisor/conf.d
+
 # Copy the Go application
 COPY --from=go-builder /app/app .
 RUN chmod +x /app/app
@@ -28,8 +33,11 @@ COPY --from=frontend-builder /app/manage-board/dist /usr/share/nginx/html
 # Configure nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Copy supervisord config
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 # Expose the port the app runs on
 EXPOSE 80
 
-# Run the Go app
-CMD ["./app"]
+# Run supervisord
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
