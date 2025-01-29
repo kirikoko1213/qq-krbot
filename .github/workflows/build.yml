@@ -14,6 +14,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Generate version tag
+        id: version
+        run: echo "VERSION=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
+
       - name: Build Docker image
         run: |
           docker build -t qq_krbot .
@@ -27,4 +31,6 @@ jobs:
       - name: Push Docker image
         run: |
           docker tag qq_krbot ${{ secrets.DOCKER_USERNAME }}/qq_krbot:latest
+          docker tag qq_krbot ${{ secrets.DOCKER_USERNAME }}/qq_krbot:${{ env.VERSION }}
           docker push ${{ secrets.DOCKER_USERNAME }}/qq_krbot:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/qq_krbot:${{ env.VERSION }}
