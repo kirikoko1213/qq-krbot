@@ -32,4 +32,4 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 
 # Run the Go app
-CMD ["./app"]
+CMD sh -c "nginx -g 'daemon off;' & ./app"
