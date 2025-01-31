@@ -2,8 +2,6 @@ package api
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/kiririx/krutils/ut"
 	"log"
 	"net/http"
 	"qq-krbot/base"
@@ -14,6 +12,9 @@ import (
 	"qq-krbot/req"
 	"qq-krbot/trigger"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/kiririx/krutils/ut"
 )
 
 var msgQueue = base.NewQueue(5)
@@ -47,19 +48,28 @@ func Bot(c *gin.Context) {
 		var handle = func(tg *trigger.Trigger) bool {
 			if tg.MessageType == param.MessageType && tg.Condition(triggerParameter) {
 				msg, err := tg.Callback(triggerParameter)
-				if err != nil {
-					Error(err, param.GroupId)
-					return true
-				}
+
 				switch tg.MessageType {
 				case "pr":
+					if err != nil {
+						Error(err, param.GroupId, param.UserId, "pr")
+						return true
+					}
 					qqutil.SendPrivateMessage(ut.Convert(param.UserId).StringValue(), qqutil.QQMsg{
 						Message: msg,
 						CQ:      tg.MessageType,
 					})
 				case "at":
+					if err != nil {
+						Error(err, param.GroupId, param.UserId, "at")
+						return true
+					}
 					sendToGroupAt(param.GroupId, msg, param.UserId)
 				case "gr":
+					if err != nil {
+						Error(err, param.GroupId, param.UserId, "gr")
+						return true
+					}
 					sendToGroup(param.GroupId, msg)
 				}
 				return true
@@ -89,7 +99,7 @@ func sendToGroupAt(groupId int64, msg string, userId int64) {
 		"message":  fmt.Sprintf("[CQ:at,qq=%v] %s", userId, msg),
 	})
 	if err != nil {
-		Error(err, groupId)
+		lg.Log.Error(err)
 		return
 	}
 }
@@ -102,17 +112,31 @@ func sendToGroup(groupId int64, msg string) {
 		"message":  msg,
 	})
 	if err != nil {
-		Error(err, groupId)
+		lg.Log.Error(err)
 		return
 	}
 }
 
-func Error(err error, groupId int64) {
+// Error 错误处理
+// mode: pr 私聊，gr 群聊, at 群聊@某人
+func Error(err error, groupId int64, userId int64, mode string) {
 	if err != nil {
 		log.Println(groupId, "Error => 🌸", err)
 		qqutil.SendPrivateMessage(env.Get("master.qq_account"), qqutil.QQMsg{
 			Message: err.Error(),
 			CQ:      "pr",
 		})
+		if mode == "gr" {
+			sendToGroup(groupId, err.Error())
+		}
+		if mode == "at" {
+			sendToGroupAt(groupId, err.Error(), userId)
+		}
+		if mode == "pr" {
+			qqutil.SendPrivateMessage(ut.Convert(userId).StringValue(), qqutil.QQMsg{
+				Message: err.Error(),
+				CQ:      "pr",
+			})
+		}
 	}
 }
