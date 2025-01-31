@@ -28,8 +28,14 @@ COPY --from=frontend-builder /app/manage-board/dist /usr/share/nginx/html
 # Configure nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Create startup script
+RUN echo '#!/bin/sh' > /start.sh && \
+    echo 'nginx' >> /start.sh && \
+    echo 'exec ./app' >> /start.sh && \
+    chmod +x /start.sh
+
 # Expose the port the app runs on
 EXPOSE 80
 
-# Run the Go app
-CMD sh -c "nginx -g 'daemon off;' & ./app"
+# Run both services
+CMD ["/start.sh"]
