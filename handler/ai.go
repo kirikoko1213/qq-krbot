@@ -1,14 +1,16 @@
 package handler
 
 import (
-	"github.com/kiririx/krutils/ut"
-	"github.com/tidwall/gjson"
+	"fmt"
 	"qq-krbot/env"
 	lg "qq-krbot/logx"
 	"qq-krbot/qqutil"
 	"qq-krbot/req"
 	"strings"
 	"time"
+
+	"github.com/kiririx/krutils/ut"
+	"github.com/tidwall/gjson"
 )
 
 var messageMap = make(map[int64]*[]map[string]string)
@@ -111,8 +113,12 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 	if apiServerURL == "" {
 		apiServerURL = "https://api.openai.com"
 	}
-
-	messageArr, err := storage.GetArrayWithNewContent("user", param.GroupId, param.UserId, param.KrMessage)
+	memberInfo, err := OneBotHandler.GetGroupMemberInfo(param.GroupId, param.UserId, false)
+	if err != nil {
+		return "", err
+	}
+	readySendMessage := fmt.Sprintf("[%s] %s", memberInfo.Card, param.KrMessage)
+	messageArr, err := storage.GetArrayWithNewContent("user", param.GroupId, param.UserId, readySendMessage)
 	if err != nil {
 		return "", err
 	}
@@ -132,7 +138,7 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 	if content == "" {
 		lg.Log.WithField("AI-response: ", json).Error("AI 回复为空")
 	}
-	err = storage.Push("user", param.GroupId, param.UserId, param.KrMessage)
+	err = storage.Push("user", param.GroupId, param.UserId, readySendMessage)
 	if err != nil {
 		return "", err
 	}

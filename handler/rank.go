@@ -17,7 +17,7 @@ func (receiver *RankHandler) BuildResponseString(rankArray repo.RankWithGroupRes
 	var response string
 	for rank, v := range rankArray {
 		// 获取qq号对应的群名片
-		result, err := OneBotHandler.GetGroupMemberInfo(groupId, v.QQAccount, true)
+		result, err := OneBotHandler.GetGroupMemberInfo(groupId, v.QQAccount, false)
 		if err != nil {
 			lg.Log.Error(err)
 			continue

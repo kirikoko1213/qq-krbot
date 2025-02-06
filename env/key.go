@@ -37,3 +37,8 @@ func SmartReplyPrompts() string {
 func HelpWordText() string {
 	return "help.word.text"
 }
+
+// GroupMemberNickname 群成员昵称
+func GroupMemberNickname(groupId int64) string {
+	return fmt.Sprintf("ai_talk.group-%v.member.nickname", groupId)
+}
