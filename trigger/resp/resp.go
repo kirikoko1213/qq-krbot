@@ -2,8 +2,6 @@ package resp
 
 import (
 	"fmt"
-	"github.com/kiririx/krutils/ut"
-	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"qq-krbot/env"
 	"qq-krbot/handler"
@@ -12,6 +10,9 @@ import (
 	"qq-krbot/req"
 	"strings"
 	"time"
+
+	"github.com/kiririx/krutils/ut"
+	"github.com/tidwall/gjson"
 )
 
 var (
@@ -140,13 +141,14 @@ func AISetting(param *req.TriggerParameter) (string, error) {
 		return "角色设定成功！", nil
 	}
 	if ut.String().StartWith(cqParam.KrMessage, "群角色设定") {
-		setting := ut.String().SubStrWithRune(strings.TrimSpace(cqParam.KrMessage), 5, ut.String().LenWithRune(cqParam.KrMessage))
-		if setting == "" {
-			return "(当前设定): " + env.Get(env.AITalkGroupPrompts(cqParam.GroupId)), nil
-		}
-		env.SetWithMode(env.ModeDB, env.AITalkGroupPrompts(cqParam.GroupId), setting)
-		handler.AIHandler.ClearSetting(cqParam)
-		return "群角色设定成功！", nil
+		// setting := ut.String().SubStrWithRune(strings.TrimSpace(cqParam.KrMessage), 5, ut.String().LenWithRune(cqParam.KrMessage))
+		// if setting == "" {
+		// 	return "(当前设定): " + env.Get(env.AITalkGroupPrompts(cqParam.GroupId)), nil
+		// }
+		// env.SetWithMode(env.ModeDB, env.AITalkGroupPrompts(cqParam.GroupId), setting)
+		// handler.AIHandler.ClearSetting(cqParam)
+		return "群角色设定暂停使用", nil
+
 	}
 	return "", nil
 }
