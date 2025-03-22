@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"qq-krbot/env"
 	lg "qq-krbot/logx"
@@ -10,6 +11,8 @@ import (
 	"time"
 
 	"github.com/kiririx/krutils/ut"
+	"github.com/openai/openai-go"
+	"github.com/openai/openai-go/option"
 	"github.com/tidwall/gjson"
 )
 
@@ -102,7 +105,7 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 		}
 	}()
 	storage := getStorage()
-	timeout := env.Get("chatgpt.timeout")
+	_ = env.Get("chatgpt.timeout")
 	proxyURL := env.Get("proxy.url")
 	cli := ut.HttpClient()
 	if proxyURL != "" {
@@ -123,21 +126,22 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 		return "", err
 	}
 
-	json, err := cli.Timeout(time.Second*time.Duration(ut.Convert(timeout).Int64Value())).Headers(map[string]string{
-		"Content-Type":  "application/json",
-		"Authorization": "Bearer " + env.Get("chatgpt.key"),
-	}).PostString(apiServerURL+"/v1/chat/completions", map[string]any{
-		"model":       env.Get("chatgpt.model"),
-		"messages":    messageArr,
-		"temperature": 0.7,
+	client := openai.NewClient(
+		option.WithAPIKey(env.Get("chatgpt.key")),
+		option.WithBaseURL(apiServerURL),
+	)
+	chatCompletion, err := client.Chat.Completions.New(context.TODO(), openai.ChatCompletionNewParams{
+		Messages: convertMessageArrToOpenAI(messageArr),
+		Model:    env.Get("chatgpt.model"),
 	})
 	if err != nil {
 		return "", err
 	}
-	content := gjson.Get(json, "choices.0.message.content").String()
+	content := chatCompletion.Choices[0].Message.Content
 	if content == "" {
-		lg.Log.WithField("AI-response: ", json).Error("AI 回复为空")
+		lg.Log.WithField("AI-response: ", chatCompletion).Error("AI 回复为空")
 	}
+
 	err = storage.Push("user", param.GroupId, param.UserId, readySendMessage)
 	if err != nil {
 		return "", err
@@ -149,6 +153,18 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 	}
 
 	return strings.TrimSpace(content), err
+}
+
+func convertMessageArrToOpenAI(messageArr []map[string]string) []openai.ChatCompletionMessageParamUnion {
+	openaiMessageArr := make([]openai.ChatCompletionMessageParamUnion, 0)
+	for _, message := range messageArr {
+		if message["role"] == "user" {
+			openaiMessageArr = append(openaiMessageArr, openai.UserMessage(message["content"]))
+		} else if message["role"] == "assistant" {
+			openaiMessageArr = append(openaiMessageArr, openai.AssistantMessage(message["content"]))
+		}
+	}
+	return openaiMessageArr
 }
 
 type Storage interface {
