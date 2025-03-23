@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"qq-krbot/env"
 	lg "qq-krbot/logx"
@@ -11,8 +12,11 @@ import (
 	"time"
 
 	"github.com/kiririx/krutils/ut"
+	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
+	"github.com/openai/openai-go/packages/param"
+	"github.com/openai/openai-go/shared"
 	"github.com/tidwall/gjson"
 )
 
@@ -98,6 +102,20 @@ func (*_AIHandler) SingleTalk(prompts, message string) (string, error) {
 	return strings.TrimSpace(content), nil
 }
 
+var openaiClient *openai.Client
+
+func init() {
+	apiServerURL := env.Get("chatgpt.server.url")
+	if apiServerURL == "" {
+		apiServerURL = "https://api.openai.com/v1"
+	}
+	c := openai.NewClient(
+		option.WithAPIKey(env.Get("chatgpt.key")),
+		option.WithBaseURL(apiServerURL),
+	)
+	openaiClient = &c
+}
+
 func (*_AIHandler) Do(param *req.Param) (string, error) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -105,17 +123,7 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 		}
 	}()
 	storage := getStorage()
-	_ = env.Get("chatgpt.timeout")
-	proxyURL := env.Get("proxy.url")
-	cli := ut.HttpClient()
-	if proxyURL != "" {
-		cli.Proxy(proxyURL)
-	}
-
-	apiServerURL := env.Get("chatgpt.server.url")
-	if apiServerURL == "" {
-		apiServerURL = "https://api.openai.com"
-	}
+	// 获取群成员信息
 	memberInfo, err := OneBotHandler.GetGroupMemberInfo(param.GroupId, param.UserId, false)
 	if err != nil {
 		return "", err
@@ -126,16 +134,29 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 		return "", err
 	}
 
-	client := openai.NewClient(
-		option.WithAPIKey(env.Get("chatgpt.key")),
-		option.WithBaseURL(apiServerURL),
-	)
-	chatCompletion, err := client.Chat.Completions.New(context.TODO(), openai.ChatCompletionNewParams{
-		Messages: convertMessageArrToOpenAI(messageArr),
+	// 定义消息
+	openaiMessageArr := convertMessageArrToOpenAI(messageArr)
+	// 调用 MCP 获取工具
+	mcpTools, err := getMCPTools()
+	if err != nil {
+		return "", err
+	}
+	// 调用 OpenAI API 生成回复
+	chatCompletion, err := openaiClient.Chat.Completions.New(context.TODO(), openai.ChatCompletionNewParams{
+		Messages: openaiMessageArr,
 		Model:    env.Get("chatgpt.model"),
+		Tools:    mcpTools,
 	})
 	if err != nil {
 		return "", err
+	}
+	if len(chatCompletion.Choices[0].Message.ToolCalls) > 0 {
+		// 调用 MCP 执行工具
+		var err error
+		chatCompletion, err = handleToolCalls(chatCompletion, openaiMessageArr, mcpTools)
+		if err != nil {
+			return "", err
+		}
 	}
 	content := chatCompletion.Choices[0].Message.Content
 	if content == "" {
@@ -155,6 +176,33 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 	return strings.TrimSpace(content), err
 }
 
+func getMCPTools() ([]openai.ChatCompletionToolParam, error) {
+	mcpTools := make([]openai.ChatCompletionToolParam, 0)
+	// 请求 MCP 获取工具
+	tools, err := MCPClient().ListTools(context.Background(), mcp.ListToolsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	for _, tool := range tools.Tools {
+		funcParam := shared.FunctionDefinitionParam{
+			Name:        tool.Name,
+			Description: param.NewOpt(tool.Description),
+		}
+		if tool.InputSchema.Properties != nil {
+			funcParam.Parameters = map[string]any{
+				"type":       "object",
+				"properties": tool.InputSchema.Properties,
+				"required":   tool.InputSchema.Required,
+			}
+		}
+		mcpTools = append(mcpTools, openai.ChatCompletionToolParam{
+			Type:     "function",
+			Function: funcParam,
+		})
+	}
+	return mcpTools, nil
+}
+
 func convertMessageArrToOpenAI(messageArr []map[string]string) []openai.ChatCompletionMessageParamUnion {
 	openaiMessageArr := make([]openai.ChatCompletionMessageParamUnion, 0)
 	for _, message := range messageArr {
@@ -162,9 +210,83 @@ func convertMessageArrToOpenAI(messageArr []map[string]string) []openai.ChatComp
 			openaiMessageArr = append(openaiMessageArr, openai.UserMessage(message["content"]))
 		} else if message["role"] == "assistant" {
 			openaiMessageArr = append(openaiMessageArr, openai.AssistantMessage(message["content"]))
+		} else if message["role"] == "system" {
+			openaiMessageArr = append(openaiMessageArr, openai.SystemMessage(message["content"]))
 		}
 	}
 	return openaiMessageArr
+}
+
+func handleToolCalls(chatCompletion *openai.ChatCompletion, openaiMessageArr []openai.ChatCompletionMessageParamUnion, mcpTools []openai.ChatCompletionToolParam) (*openai.ChatCompletion, error) {
+	innerChatCompletion := *chatCompletion
+	innerChatCompletionPtr := &innerChatCompletion
+	var toolCallMessages []openai.ChatCompletionMessageParamUnion
+	toolCallMessages = append(toolCallMessages, openaiMessageArr...)
+	// 调用工具次数限制
+	invokeCount := 0
+	for {
+		invokeCount++
+		// 调用次数限制, 防止无限调用
+		if invokeCount >= 10 {
+			break
+		}
+		toolCalls := innerChatCompletionPtr.Choices[0].Message.ToolCalls
+		if len(toolCalls) == 0 {
+			break
+		}
+		// 添加assistant的回复（包含tool_calls）
+		assistantMessage := openai.AssistantMessage(innerChatCompletionPtr.Choices[0].Message.Content)
+		var tcParams []openai.ChatCompletionMessageToolCallParam
+		for _, tc := range toolCalls {
+			tcParams = append(tcParams, openai.ChatCompletionMessageToolCallParam{
+				ID:   tc.ID,
+				Type: tc.Type,
+				Function: openai.ChatCompletionMessageToolCallFunctionParam{
+					Arguments: tc.Function.Arguments,
+					Name:      tc.Function.Name,
+				},
+			})
+		}
+		assistantMessage.OfAssistant.ToolCalls = tcParams
+		toolCallMessages = append(toolCallMessages, assistantMessage)
+
+		for _, toolCall := range toolCalls {
+			var toolArgs map[string]interface{}
+			err := json.Unmarshal([]byte(toolCall.Function.Arguments), &toolArgs)
+			if err != nil {
+				return nil, err
+			}
+
+			lg.Log.WithField("tool_name", toolCall.Function.Name).WithField("tool_args", toolArgs).Info("调用工具")
+			result, err := MCPClient().CallTool(context.Background(), mcp.CallToolRequest{
+				Params: struct {
+					Name      string                 `json:"name"`
+					Arguments map[string]interface{} `json:"arguments,omitempty"`
+					Meta      *struct {
+						ProgressToken mcp.ProgressToken `json:"progressToken,omitempty"`
+					} `json:"_meta,omitempty"`
+				}{
+					Name:      toolCall.Function.Name,
+					Arguments: toolArgs,
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+			toolCallMessages = append(toolCallMessages, openai.ToolMessage(result.Content[0].(mcp.TextContent).Text, toolCall.ID))
+		}
+
+		var err error
+		innerChatCompletionPtr, err = openaiClient.Chat.Completions.New(context.TODO(), openai.ChatCompletionNewParams{
+			Messages: toolCallMessages,
+			Model:    env.Get("chatgpt.model"),
+			Tools:    mcpTools,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return innerChatCompletionPtr, nil
 }
 
 type Storage interface {
