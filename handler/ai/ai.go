@@ -1,13 +1,13 @@
-package handler
+package ai_handler
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	"qq-krbot/env"
+	bot_handler "qq-krbot/handler/bot_engine"
 	kr_mcp "qq-krbot/handler/mcp"
 	lg "qq-krbot/logx"
-	"qq-krbot/qqutil"
 	"qq-krbot/req"
 	"strings"
 	"time"
@@ -15,50 +15,19 @@ import (
 	"github.com/kiririx/krutils/ut"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/openai/openai-go"
-	"github.com/openai/openai-go/option"
-	"github.com/openai/openai-go/packages/param"
-	"github.com/openai/openai-go/shared"
 	"github.com/tidwall/gjson"
 )
 
 var messageMap = make(map[int64]*[]map[string]string)
 
 var getRoleMap = func(qqAccount int64, groupId int64) map[string]string {
-	return map[string]string{"role": "system", "content": GetAISetting(qqAccount, groupId)}
-}
-
-func GetAISetting(qqAccount int64, groupId int64) string {
-	l1 := env.Get(env.AITalkPrompts())
-	if l1 != "" {
-		l1 = "1. (必须遵守):" + l1 + ";\n"
-	}
-	l2 := env.Get(env.AITalkGroupPrompts(groupId))
-	if l2 != "" {
-		l2 = "2. (必须遵守):" + l2 + ";\n"
-	}
-	l3 := env.Get(env.AITalkGroupAndUserPrompts(groupId, qqAccount))
-	if l3 != "" {
-		l3 = "3. (尽量遵守):" + l3 + ";\n"
-	}
-	return l1 + l2 + l3
+	return map[string]string{"role": "system", "content": getAISetting(qqAccount, groupId)}
 }
 
 type _AIHandler struct {
 }
 
 var AIHandler = &_AIHandler{}
-
-var memStorage = &MemoryStorage{}
-var dbStorage = &DbStorage{}
-
-func getStorage() Storage {
-	if env.Get("storage.engine") == "db" {
-		return memStorage
-	} else {
-		// todo dbStorage
-		return memStorage
-	}
-}
 
 func (*_AIHandler) ClearSetting(param *req.Param) {
 	storage := getStorage()
@@ -103,20 +72,6 @@ func (*_AIHandler) SingleTalk(prompts, message string) (string, error) {
 	return strings.TrimSpace(content), nil
 }
 
-var openaiClient *openai.Client
-
-func init() {
-	apiServerURL := env.Get("chatgpt.server.url")
-	if apiServerURL == "" {
-		apiServerURL = "https://api.openai.com/v1"
-	}
-	c := openai.NewClient(
-		option.WithAPIKey(env.Get("chatgpt.key")),
-		option.WithBaseURL(apiServerURL),
-	)
-	openaiClient = &c
-}
-
 func (*_AIHandler) Do(param *req.Param) (string, error) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -125,7 +80,7 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 	}()
 	storage := getStorage()
 	// 获取群成员信息
-	memberInfo, err := OneBotHandler.GetGroupMemberInfo(param.GroupId, param.UserId, false)
+	memberInfo, err := bot_handler.OneBotHandler.GetGroupMemberInfo(param.GroupId, param.UserId, false)
 	if err != nil {
 		return "", err
 	}
@@ -175,47 +130,6 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 	}
 
 	return strings.TrimSpace(content), err
-}
-
-func getMCPTools() ([]openai.ChatCompletionToolParam, error) {
-	mcpTools := make([]openai.ChatCompletionToolParam, 0)
-	// 请求 MCP 获取工具
-	tools, err := kr_mcp.SSEMCPClient().ListTools(context.Background(), mcp.ListToolsRequest{})
-	if err != nil {
-		return nil, err
-	}
-	for _, tool := range tools.Tools {
-		funcParam := shared.FunctionDefinitionParam{
-			Name:        tool.Name,
-			Description: param.NewOpt(tool.Description),
-		}
-		if tool.InputSchema.Properties != nil {
-			funcParam.Parameters = map[string]any{
-				"type":       "object",
-				"properties": tool.InputSchema.Properties,
-				"required":   tool.InputSchema.Required,
-			}
-		}
-		mcpTools = append(mcpTools, openai.ChatCompletionToolParam{
-			Type:     "function",
-			Function: funcParam,
-		})
-	}
-	return mcpTools, nil
-}
-
-func convertMessageArrToOpenAI(messageArr []map[string]string) []openai.ChatCompletionMessageParamUnion {
-	openaiMessageArr := make([]openai.ChatCompletionMessageParamUnion, 0)
-	for _, message := range messageArr {
-		if message["role"] == "user" {
-			openaiMessageArr = append(openaiMessageArr, openai.UserMessage(message["content"]))
-		} else if message["role"] == "assistant" {
-			openaiMessageArr = append(openaiMessageArr, openai.AssistantMessage(message["content"]))
-		} else if message["role"] == "system" {
-			openaiMessageArr = append(openaiMessageArr, openai.SystemMessage(message["content"]))
-		}
-	}
-	return openaiMessageArr
 }
 
 func handleToolCalls(chatCompletion *openai.ChatCompletion, openaiMessageArr []openai.ChatCompletionMessageParamUnion, mcpTools []openai.ChatCompletionToolParam) (*openai.ChatCompletion, error) {
@@ -288,76 +202,4 @@ func handleToolCalls(chatCompletion *openai.ChatCompletion, openaiMessageArr []o
 		}
 	}
 	return innerChatCompletionPtr, nil
-}
-
-type Storage interface {
-	Push(roleType string, groupId, qqAccount int64, content string) error
-	GetArray(groupId, qqAccount int64) (*[]map[string]string, error)
-	GetArrayWithNewContent(roleType string, groupId, qqAccount int64, content string) ([]map[string]string, error)
-	Clear(groupId, qqAccount int64) error
-}
-
-type MemoryStorage struct {
-}
-
-func (m *MemoryStorage) Push(roleType string, groupId, qqAccount int64, content string) error {
-	userMessageArr, err := m.GetArray(groupId, qqAccount)
-	if err != nil {
-		return err
-	}
-	*userMessageArr = append(*userMessageArr, map[string]string{"role": roleType, "content": content})
-	if len(*userMessageArr) == 16 {
-		*userMessageArr = (*userMessageArr)[4:]
-		*userMessageArr = append([]map[string]string{getRoleMap(qqAccount, groupId)}, *userMessageArr...)
-	}
-	return nil
-}
-
-func (m *MemoryStorage) GetArray(groupId, qqAccount int64) (*[]map[string]string, error) {
-	userMessageArr := messageMap[groupId+qqAccount]
-	if userMessageArr == nil {
-		userMessageArr = &[]map[string]string{}
-		*userMessageArr = append(*userMessageArr, getRoleMap(qqAccount, groupId))
-		messageMap[groupId+qqAccount] = userMessageArr
-	}
-	return userMessageArr, nil
-}
-
-func (m *MemoryStorage) GetArrayWithNewContent(roleType string, groupId, qqAccount int64, content string) ([]map[string]string, error) {
-	arr, err := m.GetArray(groupId, qqAccount)
-	if err != nil {
-		return nil, err
-	}
-	newContent := map[string]string{"role": roleType, "content": content}
-	return qqutil.AppendValue(*arr, newContent), nil
-}
-
-func (m *MemoryStorage) Clear(groupId, qqAccount int64) error {
-	// delete(messageMap, groupId+qqAccount)
-	// if qqAccount == 0 && groupId == 0 {
-	// 	clear(messageMap)
-	// } else if qqAccount == 0 {
-	// 	for k := range messageMap {
-	// 		// todo 这里需要处理, 因为key是通过整型相加, 而不是字符串相加
-	// 		if strings.Contains(strconv.FormatInt(k, 10), strconv.FormatInt(groupId, 10)) {
-	// 			delete(messageMap, k)
-	// 		}
-	// 	}
-	// }
-	clear(messageMap)
-	return nil
-}
-
-type DbStorage struct{}
-
-func (m *DbStorage) Push(roleType string, qqAccount int64, content string) error {
-	return nil
-}
-
-func (m *DbStorage) GetArray(qqAccount int64) (*[]map[string]string, error) {
-	return nil, nil
-}
-
-func (m *DbStorage) GetArrayWithNewContent(roleType string, qqAccount int64, content string) ([]map[string]string, error) {
-	return nil, nil
 }

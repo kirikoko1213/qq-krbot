@@ -1,42 +1,9 @@
-package qqutil
+package helper
 
 import (
 	"fmt"
-	"log"
-	"qq-krbot/env"
 	"time"
-
-	"github.com/kiririx/krutils/ut"
 )
-
-type QQMsg struct {
-	CQ      string
-	FileURL string
-	Message string
-}
-
-func SendPrivateMessage(targetQQ string, msg QQMsg) {
-	if msg.CQ == "image" && msg.FileURL == "" {
-		return
-	}
-	url := env.Get("onebot.http.url") + "/send_private_msg"
-	_, err := ut.HttpClient().Timeout(time.Second*30).Headers(map[string]string{
-		"content-type": "application/json",
-	}).PostString(url, map[string]any{
-		"message": func() string {
-			if msg.CQ == "image" {
-				return fmt.Sprintf("[CQ:image,file=%v,subType=%v]", msg.FileURL, 0)
-			}
-			return msg.Message
-		}(),
-		"user_id":     targetQQ,
-		"auto_escape": false,
-	})
-	if err != nil {
-		log.Println(err)
-		return
-	}
-}
 
 // TimeUntilOffWork 计算距离下班时间还有多久
 func TimeUntilOffWork(offWorkTime string) (string, error) {

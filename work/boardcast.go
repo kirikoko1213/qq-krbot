@@ -2,17 +2,15 @@ package work
 
 import (
 	"fmt"
-	"github.com/kiririx/krutils/ut"
 	"qq-krbot/env"
-	"qq-krbot/handler"
-	"qq-krbot/qqutil"
+	bot_handler "qq-krbot/handler/bot_engine"
+	"qq-krbot/helper"
 	"qq-krbot/repo"
 	"strconv"
 	"strings"
-)
 
-var hour = 8
-var minute = 0
+	"github.com/kiririx/krutils/ut"
+)
 
 func Boardcast() {
 	go ut.Async().ScheduleTask("0 8 * * *", rankTask)
@@ -30,7 +28,7 @@ func takeoutTips() {
 	groupIdArr := strings.Split(groupIdStrings, ",")
 	for _, groupIdStr := range groupIdArr {
 		groupId := ut.Convert(groupIdStr).Int64Value()
-		handler.OneBotHandler.SendGroupMsg(groupId, fmt.Sprintf("%s提醒你该点外卖了！", botName))
+		bot_handler.OneBotHandler.SendGroupMsg(groupId, fmt.Sprintf("%s提醒你该点外卖了！", botName))
 	}
 }
 
@@ -44,19 +42,19 @@ func workOffTips() {
 	for _, groupIdStr := range groupIdArr {
 		groupId, _ := strconv.ParseInt(groupIdStr, 10, 64)
 		var message string
-		result1, _ := qqutil.TimeUntilOffWork("17:00")
+		result1, _ := helper.TimeUntilOffWork("17:00")
 		if result1 != "" {
 			message += fmt.Sprintf("\n 5:00.PM -> %s", result1)
 		}
-		result2, _ := qqutil.TimeUntilOffWork("17:30")
+		result2, _ := helper.TimeUntilOffWork("17:30")
 		if result2 != "" {
 			message += fmt.Sprintf("\n 5:30.PM -> %s", result2)
 		}
-		result3, _ := qqutil.TimeUntilOffWork("18:00")
+		result3, _ := helper.TimeUntilOffWork("18:00")
 		if result3 != "" {
 			message += fmt.Sprintf("\n 6:00.PM -> %s", result3)
 		}
-		handler.OneBotHandler.SendGroupMsg(groupId, fmt.Sprintf("%s提醒你快下班了！\n%s", botName, message))
+		bot_handler.OneBotHandler.SendGroupMsg(groupId, fmt.Sprintf("%s提醒你快下班了！\n%s", botName, message))
 	}
 }
 
@@ -74,8 +72,8 @@ func rankTask() {
 		if len(rankArray) > 3 {
 			rankArray = rankArray[:3]
 		}
-		response := handler.NewRankHandler().BuildResponseString(rankArray, groupId)
-		handler.OneBotHandler.SendGroupMsg(groupId, ""+
+		response := bot_handler.NewRankHandler().BuildResponseString(rankArray, groupId)
+		bot_handler.OneBotHandler.SendGroupMsg(groupId, ""+
 			"早上好！"+botName+"为您播报昨日的水群排名："+
 			response)
 	}

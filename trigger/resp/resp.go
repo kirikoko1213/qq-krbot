@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"qq-krbot/env"
-	"qq-krbot/handler"
-	"qq-krbot/qqutil"
+	ai_handler "qq-krbot/handler/ai"
+	bot_handler "qq-krbot/handler/bot_engine"
+	"qq-krbot/helper"
 	"qq-krbot/repo"
 	"qq-krbot/req"
 	"strings"
@@ -71,15 +72,15 @@ func OffWorkTimeAnnounce(param *req.TriggerParameter) (string, error) {
 		return "不会有人这个时间还在上班吧?", nil
 	}
 	var message string
-	result1, _ := qqutil.TimeUntilOffWork("17:00")
+	result1, _ := helper.TimeUntilOffWork("17:00")
 	if result1 != "" {
 		message += fmt.Sprintf("\n 5:00.PM -> %s", result1)
 	}
-	result2, _ := qqutil.TimeUntilOffWork("17:30")
+	result2, _ := helper.TimeUntilOffWork("17:30")
 	if result2 != "" {
 		message += fmt.Sprintf("\n 5:30.PM -> %s", result2)
 	}
-	result3, _ := qqutil.TimeUntilOffWork("18:00")
+	result3, _ := helper.TimeUntilOffWork("18:00")
 	if result3 != "" {
 		message += fmt.Sprintf("\n 6:00.PM -> %s", result3)
 	}
@@ -98,7 +99,7 @@ func HolidayAnnounce(param *req.TriggerParameter) (string, error) {
 		holidayName := value.Get("name").String()
 		holidayDate := value.Get("date").String()
 		// 计算剩余天数
-		remainingDays, err := qqutil.CalculateRemainingDays(holidayDate)
+		remainingDays, err := helper.CalculateRemainingDays(holidayDate)
 		if err != nil {
 			return false
 		}
@@ -111,7 +112,7 @@ func HolidayAnnounce(param *req.TriggerParameter) (string, error) {
 }
 
 func ChatGPT(param *req.TriggerParameter) (string, error) {
-	return handler.AIHandler.Do(param.CqParam)
+	return ai_handler.AIHandler.Do(param.CqParam)
 }
 
 // key is groupID, value is message content
@@ -137,7 +138,7 @@ func AISetting(param *req.TriggerParameter) (string, error) {
 			return "(当前设定): " + env.Get(env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId)), nil
 		}
 		env.SetWithMode(env.ModeDB, env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId), setting)
-		handler.AIHandler.ClearSetting(cqParam)
+		ai_handler.AIHandler.ClearSetting(cqParam)
 		return "角色设定成功！", nil
 	}
 	if ut.String().StartWith(cqParam.KrMessage, "群角色设定") {
@@ -155,14 +156,14 @@ func AISetting(param *req.TriggerParameter) (string, error) {
 
 func RankOfGroupMsg(param *req.TriggerParameter) (string, error) {
 	rankArray := repo.NewMessageRecordRepo().RankWithGroupAndToday(param.CqParam.GroupId)
-	return handler.NewRankHandler().BuildResponseString(rankArray, param.CqParam.GroupId), nil
+	return bot_handler.NewRankHandler().BuildResponseString(rankArray, param.CqParam.GroupId), nil
 }
 
 func MyWifeOfGroup(param *req.TriggerParameter) (string, error) {
 	cqParam := param.CqParam
 	startDateTime := time.Now().AddDate(0, 0, -7)
 	accounts := repo.NewMessageRecordRepo().FindQQAccountsByDateAndGroupId(cqParam.GroupId, startDateTime, time.Now())
-	wifeArr, remain := handler.NewWifeHandler().BuildWifeGroup(accounts)
+	wifeArr, remain := bot_handler.NewWifeHandler().BuildWifeGroup(accounts)
 	defWord := "抱歉, 今天你是本群单身狗~"
 	if cqParam.UserId == *remain {
 		return defWord, nil
@@ -194,7 +195,7 @@ func CharacterPortrait(param *req.TriggerParameter) (string, error) {
 	if len(messages) < 10 {
 		return "没有足够的消息记录，请继续水群吧", nil
 	}
-	message, err := handler.AIHandler.SingleTalk(env.Get(env.CharacterPortraitPrompts(groupId)), strings.Join(messages, "\n"))
+	message, err := ai_handler.AIHandler.SingleTalk(env.Get(env.CharacterPortraitPrompts(groupId)), strings.Join(messages, "\n"))
 	if err != nil {
 		return "", err
 	}
@@ -202,14 +203,14 @@ func CharacterPortrait(param *req.TriggerParameter) (string, error) {
 }
 
 func SmartReply(param *req.TriggerParameter) (string, error) {
-	return handler.AIHandler.SingleTalk(env.Get(env.SmartReplyPrompts()), param.CqParam.KrMessage)
+	return ai_handler.AIHandler.SingleTalk(env.Get(env.SmartReplyPrompts()), param.CqParam.KrMessage)
 }
 
 func ExecSQL(param *req.TriggerParameter) (string, error) {
 	sql := ut.String().SubStrWithRune(strings.TrimSpace(param.CqParam.KrMessage), 4, ut.String().LenWithRune(param.CqParam.KrMessage))
-	query, err := handler.ExecuteSelectQuery(repo.Sql, sql)
+	query, err := bot_handler.ExecuteSelectQuery(repo.Sql, sql)
 	if err != nil {
 		return "", err
 	}
-	return handler.FormatResultAsTable(query), nil
+	return bot_handler.FormatResultAsTable(query), nil
 }

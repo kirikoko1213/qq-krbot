@@ -1,8 +1,9 @@
-package handler
+package bot_handler
 
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"qq-krbot/env"
 	lg "qq-krbot/logx"
 	"qq-krbot/repo"
@@ -126,6 +127,35 @@ func (receiver _OneBotHandler) SendGroupMsg(groupId int64, msg string) {
 	})
 	if err != nil {
 		lg.Log.Error(err)
+		return
+	}
+}
+
+type QQMsg struct {
+	CQ      string
+	FileURL string
+	Message string
+}
+
+func SendPrivateMessage(targetQQ string, msg QQMsg) {
+	if msg.CQ == "image" && msg.FileURL == "" {
+		return
+	}
+	url := env.Get("onebot.http.url") + "/send_private_msg"
+	_, err := ut.HttpClient().Timeout(time.Second*30).Headers(map[string]string{
+		"content-type": "application/json",
+	}).PostString(url, map[string]any{
+		"message": func() string {
+			if msg.CQ == "image" {
+				return fmt.Sprintf("[CQ:image,file=%v,subType=%v]", msg.FileURL, 0)
+			}
+			return msg.Message
+		}(),
+		"user_id":     targetQQ,
+		"auto_escape": false,
+	})
+	if err != nil {
+		log.Println(err)
 		return
 	}
 }

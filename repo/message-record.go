@@ -1,9 +1,10 @@
 package repo
 
 import (
-	"gorm.io/gorm"
-	"qq-krbot/qqutil"
+	"qq-krbot/helper"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type MessageRecord struct {
@@ -108,5 +109,5 @@ func (m *MessageRecordRepo) FindTextMessageByQQAccountAndGroupId(groupId int64, 
 		Order("created_at DESC").
 		Limit(limit).
 		Scan(&results)
-	return qqutil.ReverseNewSlice(results)
+	return helper.ReverseNewSlice(results)
 }

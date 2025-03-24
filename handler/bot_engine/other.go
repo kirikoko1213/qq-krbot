@@ -1,10 +1,11 @@
-package handler
+package bot_handler
 
 import (
 	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"strings"
+
+	"gorm.io/gorm"
 )
 
 func ExecuteSelectQuery(db *gorm.DB, query string) ([]map[string]string, error) {

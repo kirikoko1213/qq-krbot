@@ -1,10 +1,11 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
-	"qq-krbot/handler"
+	ai_handler "qq-krbot/handler/ai"
 	"qq-krbot/req"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AiAPI struct {
@@ -25,7 +26,7 @@ func (receiver *AiAPI) ClearAISettingCache(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	handler.AIHandler.ClearSetting(&req.Param{
+	ai_handler.AIHandler.ClearSetting(&req.Param{
 		UserId:  req_.UserId,
 		GroupId: req_.GroupId,
 	})
