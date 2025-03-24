@@ -1,6 +1,8 @@
 package ai_handler
 
-import "qq-krbot/qqutil"
+import (
+	"qq-krbot/helper"
+)
 
 type MemoryStorage struct {
 }
@@ -36,7 +38,7 @@ func (m *MemoryStorage) GetArrayWithNewContent(roleType string, groupId, qqAccou
 		return nil, err
 	}
 	newContent := map[string]string{"role": roleType, "content": content}
-	return qqutil.AppendValue(*arr, newContent), nil
+	return helper.AppendValue(*arr, newContent), nil
 }
 
 func (m *MemoryStorage) Clear(groupId, qqAccount int64) error {

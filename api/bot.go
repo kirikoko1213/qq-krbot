@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"qq-krbot/base"
 	"qq-krbot/env"
+	bot_handler "qq-krbot/handler/bot_engine"
 	lg "qq-krbot/logx"
-	"qq-krbot/qqutil"
 	"qq-krbot/repo"
 	"qq-krbot/req"
 	"qq-krbot/trigger"
@@ -55,7 +55,7 @@ func Bot(c *gin.Context) {
 						Error(err, param.GroupId, param.UserId, "pr")
 						return true
 					}
-					qqutil.SendPrivateMessage(ut.Convert(param.UserId).StringValue(), qqutil.QQMsg{
+					bot_handler.SendPrivateMessage(ut.Convert(param.UserId).StringValue(), bot_handler.QQMsg{
 						Message: msg,
 						CQ:      tg.MessageType,
 					})
@@ -122,7 +122,7 @@ func sendToGroup(groupId int64, msg string) {
 func Error(err error, groupId int64, userId int64, mode string) {
 	if err != nil {
 		log.Println(groupId, "Error => 🌸", err)
-		qqutil.SendPrivateMessage(env.Get("master.qq_account"), qqutil.QQMsg{
+		bot_handler.SendPrivateMessage(env.Get("master.qq_account"), bot_handler.QQMsg{
 			Message: err.Error(),
 			CQ:      "pr",
 		})
@@ -133,7 +133,7 @@ func Error(err error, groupId int64, userId int64, mode string) {
 			sendToGroupAt(groupId, err.Error(), userId)
 		}
 		if mode == "pr" {
-			qqutil.SendPrivateMessage(ut.Convert(userId).StringValue(), qqutil.QQMsg{
+			bot_handler.SendPrivateMessage(ut.Convert(userId).StringValue(), bot_handler.QQMsg{
 				Message: err.Error(),
 				CQ:      "pr",
 			})
