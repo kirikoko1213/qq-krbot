@@ -4,6 +4,7 @@ import (
 	"log"
 	"qq-krbot/api"
 	"qq-krbot/env"
+	kr_mcp "qq-krbot/handler/mcp"
 	"qq-krbot/repo"
 	"qq-krbot/work"
 
@@ -15,6 +16,11 @@ func main() {
 	if err := repo.InitRedis(); err != nil {
 		log.Fatalf("Redis 初始化失败: %v", err)
 	}
+
+	// 初始化 SSE MCP 服务端
+	kr_mcp.RunSSEMCPServer()
+	// 初始化 SSE MCP 客户端
+	kr_mcp.InitSSEMCPClient()
 
 	work.Boardcast()
 	r := gin.Default()

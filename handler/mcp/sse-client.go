@@ -1,4 +1,4 @@
-package handler
+package kr_mcp
 
 import (
 	"context"
@@ -13,10 +13,13 @@ import (
 
 var mcpClient *client.SSEMCPClient
 
-var ctx context.Context
+var sseCtx context.Context
 
-func init() {
-	err := initMCPClient()
+func InitSSEMCPClient() {
+	if env.Get("mcp.url") == "" {
+		return
+	}
+	err := initSSEMCPClient()
 	if err != nil {
 		panic(err)
 	}
@@ -24,20 +27,20 @@ func init() {
 	go func() {
 		for {
 			time.Sleep(2 * time.Second)
-			err := mcpClient.Ping(ctx)
+			err := mcpClient.Ping(sseCtx)
 			if err != nil {
 				lg.Log.Error(err)
-				initMCPClient()
+				initSSEMCPClient()
 			}
 		}
 	}()
 }
 
-func MCPClient() *client.SSEMCPClient {
+func SSEMCPClient() *client.SSEMCPClient {
 	return mcpClient
 }
 
-func initMCPClient() error {
+func initSSEMCPClient() error {
 	mcpURL := env.Get("mcp.url")
 	mcpName := env.Get("mcp.name")
 	var err error
@@ -46,10 +49,10 @@ func initMCPClient() error {
 		return err
 	}
 
-	ctx = context.Background()
+	sseCtx = context.Background()
 
 	// Start the client
-	if err := mcpClient.Start(ctx); err != nil {
+	if err := mcpClient.Start(sseCtx); err != nil {
 		return err
 	}
 
@@ -61,7 +64,7 @@ func initMCPClient() error {
 		Version: "1.0.0",
 	}
 
-	result, err := mcpClient.Initialize(ctx, initRequest)
+	result, err := mcpClient.Initialize(sseCtx, initRequest)
 	if err != nil {
 		return err
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"qq-krbot/env"
+	kr_mcp "qq-krbot/handler/mcp"
 	lg "qq-krbot/logx"
 	"qq-krbot/qqutil"
 	"qq-krbot/req"
@@ -179,7 +180,7 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 func getMCPTools() ([]openai.ChatCompletionToolParam, error) {
 	mcpTools := make([]openai.ChatCompletionToolParam, 0)
 	// 请求 MCP 获取工具
-	tools, err := MCPClient().ListTools(context.Background(), mcp.ListToolsRequest{})
+	tools, err := kr_mcp.SSEMCPClient().ListTools(context.Background(), mcp.ListToolsRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +259,7 @@ func handleToolCalls(chatCompletion *openai.ChatCompletion, openaiMessageArr []o
 			}
 
 			lg.Log.WithField("tool_name", toolCall.Function.Name).WithField("tool_args", toolArgs).Info("调用工具")
-			result, err := MCPClient().CallTool(context.Background(), mcp.CallToolRequest{
+			result, err := kr_mcp.SSEMCPClient().CallTool(context.Background(), mcp.CallToolRequest{
 				Params: struct {
 					Name      string                 `json:"name"`
 					Arguments map[string]interface{} `json:"arguments,omitempty"`
