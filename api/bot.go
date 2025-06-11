@@ -8,8 +8,8 @@ import (
 	"qq-krbot/env"
 	bot_handler "qq-krbot/handler/bot_engine"
 	lg "qq-krbot/logx"
+	"qq-krbot/model"
 	"qq-krbot/repo"
-	"qq-krbot/req"
 	"qq-krbot/trigger"
 	"time"
 
@@ -26,12 +26,12 @@ func Ping(c *gin.Context) {
 }
 
 func Bot(c *gin.Context) {
-	param := &req.Param{}
+	param := &model.EngineParam{}
 	err := c.ShouldBindJSON(param)
 	if err != nil {
-		// return
+		lg.Log.Error(err)
+		return
 	}
-	param.Parse()
 	if param.PostType == "message" {
 		go func() {
 			err := repo.NewMessageRecordRepo().Save(param.UserId, param.GroupId, param.RawMessage)
@@ -41,7 +41,7 @@ func Bot(c *gin.Context) {
 		}()
 		lg.Log.Infof("接收消息: %s", param.RawMessage)
 		msgQueue.Enqueue(param.RawMessage)
-		triggerParameter := &req.TriggerParameter{
+		triggerParameter := &model.TriggerParameter{
 			CqParam:  param,
 			MsgQueue: msgQueue,
 		}

@@ -7,8 +7,8 @@ import (
 	ai_handler "qq-krbot/handler/ai"
 	bot_handler "qq-krbot/handler/bot_engine"
 	"qq-krbot/helper"
+	"qq-krbot/model"
 	"qq-krbot/repo"
-	"qq-krbot/req"
 	"strings"
 	"time"
 
@@ -46,7 +46,7 @@ func init() {
 	}()
 }
 
-func Help(*req.TriggerParameter) (string, error) {
+func Help(*model.TriggerParameter) (string, error) {
 	text := env.Get(env.HelpWordText())
 	if text != "" {
 		return text, nil
@@ -63,11 +63,11 @@ func Help(*req.TriggerParameter) (string, error) {
 		"\n开源地址: https://github.com/kiririx/qq-krbot", nil
 }
 
-func Health(param *req.TriggerParameter) (string, error) {
+func Health(param *model.TriggerParameter) (string, error) {
 	return "pong", nil
 }
 
-func OffWorkTimeAnnounce(param *req.TriggerParameter) (string, error) {
+func OffWorkTimeAnnounce(param *model.TriggerParameter) (string, error) {
 	if time.Now().Hour() >= 18 {
 		return "不会有人这个时间还在上班吧?", nil
 	}
@@ -87,7 +87,7 @@ func OffWorkTimeAnnounce(param *req.TriggerParameter) (string, error) {
 	return message, nil
 }
 
-func HolidayAnnounce(param *req.TriggerParameter) (string, error) {
+func HolidayAnnounce(param *model.TriggerParameter) (string, error) {
 	holidayJSON := env.Get("holiday")
 	if holidayJSON == "" {
 		return "抱歉，没有找到假期信息", nil
@@ -111,14 +111,14 @@ func HolidayAnnounce(param *req.TriggerParameter) (string, error) {
 	return message, nil
 }
 
-func ChatGPT(param *req.TriggerParameter) (string, error) {
+func ChatGPT(param *model.TriggerParameter) (string, error) {
 	return ai_handler.AIHandler.Do(param.CqParam)
 }
 
 // key is groupID, value is message content
 var lastRepeatMsg = map[int64]string{}
 
-func Repeat(param *req.TriggerParameter) (string, error) {
+func Repeat(param *model.TriggerParameter) (string, error) {
 	if param.MsgQueue.Length() < 2 {
 		return "", nil
 	}
@@ -130,10 +130,10 @@ func Repeat(param *req.TriggerParameter) (string, error) {
 	lastRepeatMsg[param.CqParam.GroupId] = repeatMsg
 	return repeatMsg, nil
 }
-func AISetting(param *req.TriggerParameter) (string, error) {
+func AISetting(param *model.TriggerParameter) (string, error) {
 	cqParam := param.CqParam
-	if ut.String().StartWith(cqParam.KrMessage, "设定") {
-		setting := ut.String().SubStrWithRune(strings.TrimSpace(cqParam.KrMessage), 2, ut.String().LenWithRune(cqParam.KrMessage))
+	if ut.String().StartWith(cqParam.GetTextMessage(), "设定") {
+		setting := ut.String().SubStrWithRune(strings.TrimSpace(cqParam.GetTextMessage()), 2, ut.String().LenWithRune(cqParam.GetTextMessage()))
 		if setting == "" {
 			return "(当前设定): " + env.Get(env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId)), nil
 		}
@@ -141,7 +141,7 @@ func AISetting(param *req.TriggerParameter) (string, error) {
 		ai_handler.AIHandler.ClearSetting(cqParam)
 		return "角色设定成功！", nil
 	}
-	if ut.String().StartWith(cqParam.KrMessage, "群角色设定") {
+	if ut.String().StartWith(cqParam.GetTextMessage(), "群角色设定") {
 		// setting := ut.String().SubStrWithRune(strings.TrimSpace(cqParam.KrMessage), 5, ut.String().LenWithRune(cqParam.KrMessage))
 		// if setting == "" {
 		// 	return "(当前设定): " + env.Get(env.AITalkGroupPrompts(cqParam.GroupId)), nil
@@ -154,12 +154,12 @@ func AISetting(param *req.TriggerParameter) (string, error) {
 	return "", nil
 }
 
-func RankOfGroupMsg(param *req.TriggerParameter) (string, error) {
+func RankOfGroupMsg(param *model.TriggerParameter) (string, error) {
 	rankArray := repo.NewMessageRecordRepo().RankWithGroupAndToday(param.CqParam.GroupId)
 	return bot_handler.NewRankHandler().BuildResponseString(rankArray, param.CqParam.GroupId), nil
 }
 
-func MyWifeOfGroup(param *req.TriggerParameter) (string, error) {
+func MyWifeOfGroup(param *model.TriggerParameter) (string, error) {
 	cqParam := param.CqParam
 	startDateTime := time.Now().AddDate(0, 0, -7)
 	accounts := repo.NewMessageRecordRepo().FindQQAccountsByDateAndGroupId(cqParam.GroupId, startDateTime, time.Now())
@@ -188,7 +188,7 @@ func MyWifeOfGroup(param *req.TriggerParameter) (string, error) {
 	return "你今天的老婆是", nil
 }
 
-func CharacterPortrait(param *req.TriggerParameter) (string, error) {
+func CharacterPortrait(param *model.TriggerParameter) (string, error) {
 	groupId := param.CqParam.GroupId
 	userId := param.CqParam.UserId
 	messages := repo.NewMessageRecordRepo().FindTextMessageByQQAccountAndGroupId(groupId, userId, 300)
@@ -202,12 +202,12 @@ func CharacterPortrait(param *req.TriggerParameter) (string, error) {
 	return message, nil
 }
 
-func SmartReply(param *req.TriggerParameter) (string, error) {
-	return ai_handler.AIHandler.SingleTalk(env.Get(env.SmartReplyPrompts()), param.CqParam.KrMessage)
+func SmartReply(param *model.TriggerParameter) (string, error) {
+	return ai_handler.AIHandler.SingleTalk(env.Get(env.SmartReplyPrompts()), param.CqParam.GetTextMessage())
 }
 
-func ExecSQL(param *req.TriggerParameter) (string, error) {
-	sql := ut.String().SubStrWithRune(strings.TrimSpace(param.CqParam.KrMessage), 4, ut.String().LenWithRune(param.CqParam.KrMessage))
+func ExecSQL(param *model.TriggerParameter) (string, error) {
+	sql := ut.String().SubStrWithRune(strings.TrimSpace(param.CqParam.GetTextMessage()), 4, ut.String().LenWithRune(param.CqParam.GetTextMessage()))
 	query, err := bot_handler.ExecuteSelectQuery(repo.Sql, sql)
 	if err != nil {
 		return "", err

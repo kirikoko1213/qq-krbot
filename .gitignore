@@ -4,3 +4,7 @@ static
 manage-board/.idea
 config.properties
 .DS_Store
+.vscode
+.cursor
+qq-krbot
+log.txt

@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 	ai_handler "qq-krbot/handler/ai"
-	"qq-krbot/req"
+	"qq-krbot/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +26,7 @@ func (receiver *AiAPI) ClearAISettingCache(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	ai_handler.AIHandler.ClearSetting(&req.Param{
+	ai_handler.AIHandler.ClearSetting(&model.EngineParam{
 		UserId:  req_.UserId,
 		GroupId: req_.GroupId,
 	})

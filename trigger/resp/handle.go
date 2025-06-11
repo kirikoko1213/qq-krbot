@@ -1,53 +1,54 @@
 package resp
 
 import (
-	"github.com/kiririx/krutils/ut"
 	lg "qq-krbot/logx"
+	"qq-krbot/model"
 	"qq-krbot/repo"
-	"qq-krbot/req"
 	"strings"
+
+	"github.com/kiririx/krutils/ut"
 )
 
-func GetCondition(model *repo.DynamicTriggerModel) func(*req.TriggerParameter) bool {
-	switch model.ConditionType {
+func GetCondition(tdm *repo.DynamicTriggerModel) func(*model.TriggerParameter) bool {
+	switch tdm.ConditionType {
 	case "equals":
-		return func(param *req.TriggerParameter) bool {
-			return ut.String().In(strings.TrimSpace(param.CqParam.KrMessage), model.ConditionValue)
+		return func(param *model.TriggerParameter) bool {
+			return ut.String().In(strings.TrimSpace(param.CqParam.GetTextMessage()), tdm.ConditionValue)
 		}
 
 	case "contains":
-		return func(param *req.TriggerParameter) bool {
-			return ut.String().Contains(param.CqParam.KrMessage, model.ConditionValue)
+		return func(param *model.TriggerParameter) bool {
+			return ut.String().Contains(param.CqParam.GetTextMessage(), tdm.ConditionValue)
 		}
 
 	case "startsWith":
-		return func(param *req.TriggerParameter) bool {
-			return ut.String().StartWith(param.CqParam.KrMessage, model.ConditionValue)
+		return func(param *model.TriggerParameter) bool {
+			return ut.String().StartWith(param.CqParam.GetTextMessage(), tdm.ConditionValue)
 		}
 	case "endsWith":
-		return func(param *req.TriggerParameter) bool {
-			return ut.String().EndWith(param.CqParam.KrMessage, model.ConditionValue)
+		return func(param *model.TriggerParameter) bool {
+			return ut.String().EndWith(param.CqParam.GetTextMessage(), tdm.ConditionValue)
 		}
 	}
 	panic("不存在的conditionType")
 }
 
-func GetCallback(model *repo.DynamicTriggerModel) func(*req.TriggerParameter) (string, error) {
-	switch model.TriggerContentType {
+func GetCallback(tdm *repo.DynamicTriggerModel) func(*model.TriggerParameter) (string, error) {
+	switch tdm.TriggerContentType {
 	case "text":
-		return func(param *req.TriggerParameter) (string, error) {
-			return model.TriggerContent, nil
+		return func(param *model.TriggerParameter) (string, error) {
+			return tdm.TriggerContent, nil
 		}
 	case "api":
-		return func(param *req.TriggerParameter) (string, error) {
-			return model.TriggerContent, nil
+		return func(param *model.TriggerParameter) (string, error) {
+			return tdm.TriggerContent, nil
 		}
 	case "image":
-		return func(param *req.TriggerParameter) (string, error) {
-			return model.TriggerContent, nil
+		return func(param *model.TriggerParameter) (string, error) {
+			return tdm.TriggerContent, nil
 		}
 	case "handler":
-		return GetHandler(model.TriggerContent).Func
+		return GetHandler(tdm.TriggerContent).Func
 	}
 	panic("不存在的triggerContentType")
 }
@@ -58,7 +59,7 @@ func NewDynamicTriggerHandler() *DynamicTriggerHandler {
 	return &DynamicTriggerHandler{}
 }
 
-func (m *DynamicTriggerHandler) RegisterTriggers(f func(messageType string, condition func(*req.TriggerParameter) bool, callback func(*req.TriggerParameter) (string, error))) {
+func (m *DynamicTriggerHandler) RegisterTriggers(f func(messageType string, condition func(*model.TriggerParameter) bool, callback func(*model.TriggerParameter) (string, error))) {
 	dtRepo := repo.NewDynamicTriggerRepo()
 	list, err := dtRepo.FindList(&repo.DynamicTriggerModel{})
 	if err != nil {
