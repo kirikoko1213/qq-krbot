@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -36,9 +37,10 @@ func DefaultOpenAIConfig() *OpenAIConfig {
 
 // OpenAIClient 封装的OpenAI客户端
 type OpenAIClient struct {
-	client  *openai.Client
-	config  *OpenAIConfig
-	storage ContextStorage // 上下文存储
+	client     *openai.Client
+	config     *OpenAIConfig
+	storage    ContextStorage // 上下文存储
+	mcpManager *MCPManager    // MCP管理器
 }
 
 // NewOpenAIClient 创建新的OpenAI客户端
@@ -48,6 +50,16 @@ func NewOpenAIClient(config *OpenAIConfig) *OpenAIClient {
 
 // NewOpenAIClientWithStorage 创建带存储的OpenAI客户端
 func NewOpenAIClientWithStorage(config *OpenAIConfig, storage ContextStorage) *OpenAIClient {
+	return NewOpenAIClientWithAll(config, storage, nil)
+}
+
+// NewOpenAIClientWithMCP 创建带MCP的OpenAI客户端
+func NewOpenAIClientWithMCP(config *OpenAIConfig, mcpManager *MCPManager) *OpenAIClient {
+	return NewOpenAIClientWithAll(config, nil, mcpManager)
+}
+
+// NewOpenAIClientWithAll 创建完整功能的OpenAI客户端
+func NewOpenAIClientWithAll(config *OpenAIConfig, storage ContextStorage, mcpManager *MCPManager) *OpenAIClient {
 	if config == nil {
 		config = DefaultOpenAIConfig()
 	}
@@ -85,9 +97,10 @@ func NewOpenAIClientWithStorage(config *OpenAIConfig, storage ContextStorage) *O
 	client := openai.NewClient(opts...)
 
 	return &OpenAIClient{
-		client:  &client,
-		config:  config,
-		storage: storage,
+		client:     &client,
+		config:     config,
+		storage:    storage,
+		mcpManager: mcpManager,
 	}
 }
 
@@ -411,4 +424,253 @@ func (c *OpenAIClient) GetSessionMessages(sessionID string) ([]Message, error) {
 		return nil, fmt.Errorf("未设置上下文存储")
 	}
 	return c.storage.LoadMessages(sessionID)
+}
+
+// SetMCPManager 设置MCP管理器
+func (c *OpenAIClient) SetMCPManager(manager *MCPManager) {
+	c.mcpManager = manager
+}
+
+// GetMCPManager 获取MCP管理器
+func (c *OpenAIClient) GetMCPManager() *MCPManager {
+	return c.mcpManager
+}
+
+// ChatWithTools 带工具调用的对话
+func (c *OpenAIClient) ChatWithTools(messages []Message) (*ChatResponse, error) {
+	if c.mcpManager == nil || !c.mcpManager.IsConnected() {
+		// 如果没有MCP管理器，回退到普通对话
+		return c.ChatWithMessages(messages)
+	}
+
+	// 获取工具列表
+	tools, err := c.mcpManager.GetTools()
+	if err != nil {
+		return nil, fmt.Errorf("获取MCP工具失败: %w", err)
+	}
+
+	// 转换消息格式
+	openaiMessages := make([]openai.ChatCompletionMessageParamUnion, len(messages))
+	for i, msg := range messages {
+		switch msg.Role {
+		case "system":
+			openaiMessages[i] = openai.SystemMessage(msg.Content)
+		case "user":
+			openaiMessages[i] = openai.UserMessage(msg.Content)
+		case "assistant":
+			openaiMessages[i] = openai.AssistantMessage(msg.Content)
+		default:
+			return nil, fmt.Errorf("不支持的消息角色: %s", msg.Role)
+		}
+	}
+
+	// 调用OpenAI API
+	completion, err := c.client.Chat.Completions.New(context.Background(), openai.ChatCompletionNewParams{
+		Messages:    openaiMessages,
+		Model:       openai.ChatModel(c.config.Model),
+		MaxTokens:   openai.Int(c.config.MaxTokens),
+		Temperature: openai.Float(c.config.Temperature),
+		TopP:        openai.Float(c.config.TopP),
+		Tools:       tools,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("调用OpenAI API失败: %w", err)
+	}
+
+	// 处理工具调用
+	if len(completion.Choices[0].Message.ToolCalls) > 0 {
+		completion, err = c.handleToolCalls(completion, openaiMessages, tools)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(completion.Choices) == 0 {
+		return nil, fmt.Errorf("API响应中没有选择项")
+	}
+
+	// 构建响应
+	response := &ChatResponse{
+		Content:      completion.Choices[0].Message.Content,
+		FinishReason: string(completion.Choices[0].FinishReason),
+		Usage: struct {
+			PromptTokens     int `json:"prompt_tokens"`
+			CompletionTokens int `json:"completion_tokens"`
+			TotalTokens      int `json:"total_tokens"`
+		}{
+			PromptTokens:     int(completion.Usage.PromptTokens),
+			CompletionTokens: int(completion.Usage.CompletionTokens),
+			TotalTokens:      int(completion.Usage.TotalTokens),
+		},
+	}
+
+	return response, nil
+}
+
+// ChatWithToolsAndSession 带工具调用和会话管理的对话
+func (c *OpenAIClient) ChatWithToolsAndSession(sessionID, message string) (*ChatResponse, error) {
+	return c.ChatWithToolsSessionAndSystem(sessionID, "", message)
+}
+
+// ChatWithToolsSessionAndSystem 带工具调用、会话管理和系统提示的对话
+func (c *OpenAIClient) ChatWithToolsSessionAndSystem(sessionID, systemPrompt, message string) (*ChatResponse, error) {
+	// 如果没有存储，直接使用工具对话
+	if c.storage == nil {
+		messages := []Message{{Role: "user", Content: message}}
+		if systemPrompt != "" {
+			messages = []Message{
+				{Role: "system", Content: systemPrompt},
+				{Role: "user", Content: message},
+			}
+		}
+		return c.ChatWithTools(messages)
+	}
+
+	// 加载历史消息
+	messages, err := c.storage.LoadMessages(sessionID)
+	if err != nil {
+		return nil, fmt.Errorf("加载会话历史失败: %w", err)
+	}
+
+	// 如果没有历史消息且有系统提示，则添加系统消息
+	if len(messages) == 0 && systemPrompt != "" {
+		systemMessage := Message{Role: "system", Content: systemPrompt}
+		messages = append(messages, systemMessage)
+
+		// 保存系统消息
+		if err := c.storage.SaveMessage(sessionID, systemMessage); err != nil {
+			return nil, fmt.Errorf("保存系统消息失败: %w", err)
+		}
+	}
+
+	// 添加用户消息
+	userMessage := Message{Role: "user", Content: message}
+	messages = append(messages, userMessage)
+
+	// 调用带工具的对话
+	response, err := c.ChatWithTools(messages)
+	if err != nil {
+		return nil, err
+	}
+
+	// 保存用户消息和AI回复
+	if err := c.storage.SaveMessage(sessionID, userMessage); err != nil {
+		return nil, fmt.Errorf("保存用户消息失败: %w", err)
+	}
+
+	assistantMessage := Message{Role: "assistant", Content: response.Content}
+	if err := c.storage.SaveMessage(sessionID, assistantMessage); err != nil {
+		return nil, fmt.Errorf("保存AI回复失败: %w", err)
+	}
+
+	return response, nil
+}
+
+// handleToolCalls 处理工具调用
+func (c *OpenAIClient) handleToolCalls(completion *openai.ChatCompletion, originalMessages []openai.ChatCompletionMessageParamUnion, tools []openai.ChatCompletionToolParam) (*openai.ChatCompletion, error) {
+	if c.mcpManager == nil {
+		return completion, nil
+	}
+
+	innerCompletion := *completion
+	toolCallMessages := make([]openai.ChatCompletionMessageParamUnion, len(originalMessages))
+	copy(toolCallMessages, originalMessages)
+
+	// 工具调用次数限制
+	maxCalls := c.mcpManager.config.MaxToolCalls
+	if maxCalls <= 0 {
+		maxCalls = 10
+	}
+
+	for callCount := 0; callCount < maxCalls; callCount++ {
+		toolCalls := innerCompletion.Choices[0].Message.ToolCalls
+		if len(toolCalls) == 0 {
+			break
+		}
+
+		// 添加assistant的回复（包含tool_calls）
+		assistantMessage := openai.AssistantMessage(innerCompletion.Choices[0].Message.Content)
+		var tcParams []openai.ChatCompletionMessageToolCallParam
+		for _, tc := range toolCalls {
+			tcParams = append(tcParams, openai.ChatCompletionMessageToolCallParam{
+				ID:   tc.ID,
+				Type: tc.Type,
+				Function: openai.ChatCompletionMessageToolCallFunctionParam{
+					Arguments: tc.Function.Arguments,
+					Name:      tc.Function.Name,
+				},
+			})
+		}
+		assistantMessage.OfAssistant.ToolCalls = tcParams
+		toolCallMessages = append(toolCallMessages, assistantMessage)
+
+		// 执行每个工具调用
+		for _, toolCall := range toolCalls {
+			var toolArgs map[string]interface{}
+			err := json.Unmarshal([]byte(toolCall.Function.Arguments), &toolArgs)
+			if err != nil {
+				return nil, fmt.Errorf("解析工具参数失败: %w", err)
+			}
+
+			// 调用MCP工具
+			result, err := c.mcpManager.CallTool(toolCall.Function.Name, toolArgs)
+			if err != nil {
+				result = fmt.Sprintf("工具调用失败: %v", err)
+			}
+
+			// 添加工具调用结果
+			toolCallMessages = append(toolCallMessages, openai.ToolMessage(result, toolCall.ID))
+		}
+
+		// 再次调用OpenAI API
+		newCompletion, err := c.client.Chat.Completions.New(context.Background(), openai.ChatCompletionNewParams{
+			Messages:    toolCallMessages,
+			Model:       openai.ChatModel(c.config.Model),
+			MaxTokens:   openai.Int(c.config.MaxTokens),
+			Temperature: openai.Float(c.config.Temperature),
+			TopP:        openai.Float(c.config.TopP),
+			Tools:       tools,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("工具调用后的API请求失败: %w", err)
+		}
+
+		innerCompletion = *newCompletion
+	}
+
+	return &innerCompletion, nil
+}
+
+// GetAvailableTools 获取可用的工具列表
+func (c *OpenAIClient) GetAvailableTools() ([]string, error) {
+	if c.mcpManager == nil {
+		return []string{}, nil
+	}
+	if !c.mcpManager.IsConnected() {
+		return nil, fmt.Errorf("MCP客户端未连接")
+	}
+	return c.mcpManager.GetToolNames(), nil
+}
+
+// GetToolInfo 获取工具信息
+func (c *OpenAIClient) GetToolInfo(toolName string) (map[string]interface{}, error) {
+	if c.mcpManager == nil {
+		return nil, fmt.Errorf("未设置MCP管理器")
+	}
+	if !c.mcpManager.IsConnected() {
+		return nil, fmt.Errorf("MCP客户端未连接")
+	}
+
+	tool, err := c.mcpManager.GetToolInfo(toolName)
+	if err != nil {
+		return nil, err
+	}
+
+	info := map[string]interface{}{
+		"name":        tool.Name,
+		"description": tool.Description,
+		"parameters":  tool.InputSchema,
+	}
+
+	return info, nil
 }

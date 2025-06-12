@@ -2,6 +2,7 @@ package kr_mcp
 
 import (
 	"log"
+	"qq-krbot/env"
 
 	"qq-krbot/handler/mcp/mcp_tools"
 
@@ -44,9 +45,10 @@ func NewMCPServer() *server.MCPServer {
 func RunSSEMCPServer() {
 	go func() {
 		mcpServer := NewMCPServer()
-		sseServer := server.NewSSEServer(mcpServer, server.WithBaseURL("http://localhost:3001"))
-		log.Printf("SSE server listening on :3001")
-		if err := sseServer.Start(":3001"); err != nil {
+		port := env.Get("mcp.sse.port")
+		sseServer := server.NewSSEServer(mcpServer, server.WithBaseURL("http://localhost:"+port))
+		log.Printf("SSE server listening on :%s", port)
+		if err := sseServer.Start(":" + port); err != nil {
 			log.Fatalf("Server error: %v", err)
 		}
 	}()

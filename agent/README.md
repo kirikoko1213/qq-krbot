@@ -364,8 +364,154 @@ type ContextStorage interface {
 - **会话隔离**: 不同会话ID的对话完全独立
 - **灵活扩展**: 通过接口可以轻松扩展到数据库存储
 
+## MCP (Model Context Protocol) 集成
+
+新增的MCP功能让AI可以调用外部工具，极大扩展了AI的能力边界。
+
+### 快速开始
+
+```go
+// 1. 创建MCP管理器
+mcpConfig := &agent.MCPConfig{
+    URL:           "http://localhost:3001", // MCP服务器地址
+    ServerName:    "qq-mcp-server",
+    EnableLogging: true,
+}
+mcpManager := agent.NewMCPManager(mcpConfig)
+
+// 2. 连接MCP服务器
+err := mcpManager.Connect()
+if err != nil {
+    log.Fatal(err)
+}
+
+// 3. 创建带MCP功能的客户端
+client := agent.NewOpenAIClientWithMCP(&agent.OpenAIConfig{
+    APIKey: "your-api-key",
+}, mcpManager)
+
+// 4. 带工具调用的对话
+response, err := client.ChatWithTools([]agent.Message{
+    {Role: "user", Content: "请查询北京的天气"},
+})
+```
+
+### MCP配置选项
+
+| 字段             | 类型          | 默认值       | 说明                   |
+|------------------|---------------|--------------|------------------------|
+| URL              | string        | 无           | MCP服务器地址          |
+| ServerName       | string        | mcp-server   | 期望的服务器名称       |
+| ClientName       | string        | agent-client | 客户端名称             |
+| ConnectTimeout   | time.Duration | 30s          | 连接超时时间           |
+| PingInterval     | time.Duration | 10s          | 健康检查间隔           |
+| AutoReconnect    | bool          | true         | 是否自动重连           |
+| MaxRetries       | int           | 3            | 最大重试次数           |
+| MaxToolCalls     | int           | 10           | 最大工具调用次数       |
+| ToolCallTimeout  | time.Duration | 30s          | 工具调用超时时间       |
+| EnableLogging    | bool          | true         | 是否启用日志           |
+
+### 主要功能
+
+#### 1. 工具调用对话
+```go
+// 自动调用工具的对话
+response, err := client.ChatWithTools([]agent.Message{
+    {Role: "user", Content: "请查询上海和北京的天气，然后比较一下"},
+})
+```
+
+#### 2. 工具+上下文管理
+```go
+// 同时支持工具调用和上下文管理
+response, err := client.ChatWithToolsAndSession(sessionID, "那深圳呢？")
+```
+
+#### 3. 工具信息查询
+```go
+// 获取可用工具列表
+tools, err := client.GetAvailableTools()
+
+// 获取工具详细信息
+toolInfo, err := client.GetToolInfo("weather")
+```
+
+#### 4. 健康监控
+```go
+// 检查连接状态
+isConnected := mcpManager.IsConnected()
+
+// 获取最后ping时间
+lastPing := mcpManager.GetLastPingTime()
+```
+
+### 创建客户端的不同方式
+
+```go
+// 1. 仅OpenAI功能
+client := agent.NewOpenAIClient(config)
+
+// 2. OpenAI + 上下文存储
+storage := agent.NewMemoryContextStorage(50)
+client := agent.NewOpenAIClientWithStorage(config, storage)
+
+// 3. OpenAI + MCP工具
+mcpManager := agent.NewMCPManager(mcpConfig)
+client := agent.NewOpenAIClientWithMCP(config, mcpManager)
+
+// 4. 完整功能（OpenAI + 上下文 + MCP）
+client := agent.NewOpenAIClientWithAll(config, storage, mcpManager)
+```
+
+### MCP工具开发
+
+您可以扩展现有的MCP服务器来添加新工具：
+
+```go
+// 在 handler/mcp/mcp_tools/ 目录下创建新工具
+func MyCustomTool() (mcp.Tool, server.ToolHandlerFunc) {
+    tool := mcp.NewTool("my_tool",
+        mcp.WithDescription("我的自定义工具"),
+        mcp.WithString("input", mcp.Description("输入参数"), mcp.Required()),
+    )
+    return tool, handleMyCustomTool
+}
+
+func handleMyCustomTool(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+    // 工具实现逻辑
+    input := request.Params.Arguments["input"].(string)
+    result := fmt.Sprintf("处理结果: %s", input)
+    
+    return &mcp.CallToolResult{
+        Content: []mcp.Content{
+            mcp.TextContent{Type: "text", Text: result},
+        },
+    }, nil
+}
+
+// 然后在server.go中注册工具
+mcpServer.AddTool(mcp_tools.MyCustomTool())
+```
+
+### 错误处理与降级
+
+当MCP服务器不可用时，系统会自动降级到普通对话：
+
+```go
+// 如果MCP未连接，ChatWithTools会自动降级为ChatWithMessages
+response, err := client.ChatWithTools(messages) // 安全调用，不会因MCP问题而失败
+```
+
+### 性能优化建议
+
+1. **连接池**: MCP管理器会自动维护连接，无需手动管理
+2. **缓存工具列表**: 工具列表会在连接时缓存，避免重复查询
+3. **超时控制**: 合理设置工具调用超时时间，避免长时间等待
+4. **错误恢复**: 启用自动重连功能，提高系统可靠性
+
 ## 示例代码
 
 更多示例请查看：
 - `example.go` - 基础使用示例
-- `context_example.go` - 上下文管理示例 
+- `context_example.go` - 上下文管理示例
+- `mcp_example.go` - MCP工具调用示例 

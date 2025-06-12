@@ -13,7 +13,7 @@ import (
 
 func WeatherTool() (mcp.Tool, server.ToolHandlerFunc) {
 	t := mcp.NewTool("weather",
-		mcp.WithDescription("获取一个城市的天气，需要提供中文城市名称，如北京，上海，南京，广州等"),
+		mcp.WithDescription("获取一个城市的天气，需要提供中文城市名称，如北京，上海，南京，广州等，用户必须明确指定查看天气相关信息时才调用"),
 		mcp.WithString("city",
 			mcp.Description("中文城市名称"),
 			mcp.Required(),
