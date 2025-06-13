@@ -9,13 +9,15 @@ import (
 	bot_handler "qq-krbot/handler/bot_engine"
 	lg "qq-krbot/logx"
 	"qq-krbot/model"
-	"qq-krbot/repo"
+	svc "qq-krbot/service"
 	"qq-krbot/trigger"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kiririx/krutils/ut"
 )
+
+var messageService = svc.NewMessageService()
 
 var msgQueue = base.NewQueue(5)
 
@@ -34,13 +36,9 @@ func Bot(c *gin.Context) {
 	}
 	if param.PostType == "message" {
 		go func() {
-			err := repo.NewMessageRecordRepo().Save(param.UserId, param.GroupId, param.RawMessage)
-			if err != nil {
-				lg.Log.Error(err)
-			}
+			messageService.SaveMessage(*param)
 		}()
 		lg.Log.Infof("接收消息: %s", param.RawMessage)
-		msgQueue.Enqueue(param.RawMessage)
 		triggerParameter := &model.TriggerParameter{
 			CqParam:  param,
 			MsgQueue: msgQueue,
