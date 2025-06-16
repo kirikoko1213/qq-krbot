@@ -109,7 +109,7 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 	if len(chatCompletion.Choices[0].Message.ToolCalls) > 0 {
 		// 调用 MCP 执行工具
 		var err error
-		chatCompletion, err = handleToolCalls(chatCompletion, openaiMessageArr, mcpTools)
+		chatCompletion, err = handleToolCalls(chatCompletion, openaiMessageArr, mcpTools, param)
 		if err != nil {
 			return "", err
 		}
@@ -132,7 +132,7 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 	return strings.TrimSpace(content), err
 }
 
-func handleToolCalls(chatCompletion *openai.ChatCompletion, openaiMessageArr []openai.ChatCompletionMessageParamUnion, mcpTools []openai.ChatCompletionToolParam) (*openai.ChatCompletion, error) {
+func handleToolCalls(chatCompletion *openai.ChatCompletion, openaiMessageArr []openai.ChatCompletionMessageParamUnion, mcpTools []openai.ChatCompletionToolParam, param *req.Param) (*openai.ChatCompletion, error) {
 	innerChatCompletion := *chatCompletion
 	innerChatCompletionPtr := &innerChatCompletion
 	var toolCallMessages []openai.ChatCompletionMessageParamUnion
@@ -171,7 +171,7 @@ func handleToolCalls(chatCompletion *openai.ChatCompletion, openaiMessageArr []o
 			if err != nil {
 				return nil, err
 			}
-
+			toolArgs["groupId"] = param.GroupId
 			lg.Log.WithField("tool_name", toolCall.Function.Name).WithField("tool_args", toolArgs).Info("调用工具")
 			result, err := kr_mcp.SSEMCPClient().CallTool(context.Background(), mcp.CallToolRequest{
 				Params: struct {

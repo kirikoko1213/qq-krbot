@@ -37,7 +37,7 @@ func NewMCPServer() *server.MCPServer {
 
 	mcpServer.AddTool(mcp_tools.WeatherTool())
 	mcpServer.AddTool(mcp_tools.DnfGoldTool())
-
+	mcpServer.AddTool(mcp_tools.QQGroupMessageRankTool())
 	return mcpServer
 }
 

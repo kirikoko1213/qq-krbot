@@ -60,7 +60,7 @@ func Help(*req.TriggerParameter) (string, error) {
 		"6. 人格分析: @我并发送 人格分析" + "\n" +
 		"7. 假期倒计时: @我并发送 假期" + "\n" +
 		"......" + "\n" +
-		"\n开源地址: https://github.com/kiririx/qq-krbot", nil
+		"\n开源地址: https://github.com/kirikoko1213/qq-krbot", nil
 }
 
 func Health(param *req.TriggerParameter) (string, error) {
