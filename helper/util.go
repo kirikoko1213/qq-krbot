@@ -2,6 +2,9 @@ package helper
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -67,4 +70,50 @@ func ReverseNewSlice[T any](s []T) []T {
 		newSlice[i] = s[j]
 	}
 	return newSlice
+}
+
+// ExtractQQ 从CQ码中提取QQ号
+func ExtractQQ(input string) (int64, error) {
+	// 定义一个正则表达式来匹配 "qq=" 后面的数字
+	re := regexp.MustCompile(`qq=(\d+)`)
+
+	// 使用正则表达式查找匹配项
+	matches := re.FindStringSubmatch(input)
+	if len(matches) < 2 {
+		return 0, fmt.Errorf("no QQ number found")
+	}
+
+	// 返回匹配的 QQ 号码
+	qq, err := strconv.ParseInt(matches[1], 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return qq, nil
+}
+
+// ParseCQCodes 解析CQ码，返回剩余的文本
+func ParseCQCodes(input string) string {
+	// Define a regular expression to match [CQ:...] patterns
+	re := regexp.MustCompile(`\[CQ:(\w+),([^\]]+)\]`)
+	matches := re.FindAllStringSubmatch(input, -1)
+
+	remainingText := input
+
+	for _, match := range matches {
+		paramsStr := match[2]
+
+		// Parse the parameters into a map
+		params := make(map[string]string)
+		for _, param := range strings.Split(paramsStr, ",") {
+			kv := strings.SplitN(param, "=", 2)
+			if len(kv) == 2 {
+				params[kv[0]] = kv[1]
+			}
+		}
+
+		// Remove the matched CQ code from the remaining text
+		remainingText = strings.Replace(remainingText, match[0], "", 1)
+	}
+
+	return remainingText
 }

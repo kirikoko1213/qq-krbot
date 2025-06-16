@@ -1,10 +1,10 @@
 package resp
 
-import "qq-krbot/req"
+import "qq-krbot/model"
 
 type Handle struct {
 	Description string `json:"description"`
-	Func        func(*req.TriggerParameter) (string, error)
+	Func        func(*model.TriggerParameter) (string, error)
 }
 
 var HandlePool []*Handle = make([]*Handle, 0)

@@ -1,55 +1,57 @@
 package trigger
 
 import (
-	"github.com/kiririx/krutils/ut"
 	"qq-krbot/env"
-	"qq-krbot/req"
+	"qq-krbot/model"
+
 	"strconv"
 	"strings"
+
+	"github.com/kiririx/krutils/ut"
 )
 
-func Help(param *req.TriggerParameter) bool {
-	return ut.String().In(strings.TrimSpace(param.CqParam.KrMessage), "ヘルプ", "帮助", "help", "?", "？", "")
+func Help(param *model.TriggerParameter) bool {
+	return ut.String().In(strings.TrimSpace(param.CqParam.GetTextMessage()), "ヘルプ", "帮助", "help", "?", "？", "")
 }
 
-func AISetting(param *req.TriggerParameter) bool {
-	return ut.String().StartWith(param.CqParam.KrMessage, "设定", "群角色设定")
+func AISetting(param *model.TriggerParameter) bool {
+	return ut.String().StartWith(param.CqParam.GetTextMessage(), "设定", "群角色设定")
 }
 
-func Health(param *req.TriggerParameter) bool {
-	return ut.String().In(strings.TrimSpace(param.CqParam.KrMessage), "ping")
+func Health(param *model.TriggerParameter) bool {
+	return ut.String().In(strings.TrimSpace(param.CqParam.GetTextMessage()), "ping")
 }
 
-func OffWorkTimeAnnounce(param *req.TriggerParameter) bool {
-	return ut.String().In(strings.TrimSpace(param.CqParam.KrMessage), "报时", "11")
+func OffWorkTimeAnnounce(param *model.TriggerParameter) bool {
+	return ut.String().In(strings.TrimSpace(param.CqParam.GetTextMessage()), "报时", "11")
 }
 
-func HolidayAnnounce(param *req.TriggerParameter) bool {
-	return ut.String().In(param.CqParam.KrMessage, "假期", "假期倒计时")
+func HolidayAnnounce(param *model.TriggerParameter) bool {
+	return ut.String().In(param.CqParam.GetTextMessage(), "假期", "假期倒计时")
 }
 
-func RankOfGroupMsg(param *req.TriggerParameter) bool {
-	text := strings.TrimSpace(param.CqParam.KrMessage)
+func RankOfGroupMsg(param *model.TriggerParameter) bool {
+	text := strings.TrimSpace(param.CqParam.GetTextMessage())
 	return text == "排名"
 }
 
-func MyWifeOfGroup(param *req.TriggerParameter) bool {
-	text := strings.TrimSpace(param.CqParam.KrMessage)
+func MyWifeOfGroup(param *model.TriggerParameter) bool {
+	text := strings.TrimSpace(param.CqParam.GetTextMessage())
 	return ut.String().In(text, "群老婆")
 }
 
-func ChatGPT(param *req.TriggerParameter) bool {
+func ChatGPT(param *model.TriggerParameter) bool {
 	if ut.String().Contains(env.Get("block.account"), strconv.FormatInt(param.CqParam.UserId, 10)) {
 		return false
 	}
 	return true
 }
 
-func SmartReply(param *req.TriggerParameter) bool {
-	return ut.String().Contains(param.CqParam.KrMessage, "人生", "不想上班", "好累", "工作")
+func SmartReply(param *model.TriggerParameter) bool {
+	return ut.String().Contains(param.CqParam.GetTextMessage(), "人生", "不想上班", "好累", "工作")
 }
 
-func Repeat(param *req.TriggerParameter) bool {
+func Repeat(param *model.TriggerParameter) bool {
 	if param.MsgQueue.Length() >= 2 {
 		if param.MsgQueue.GetIndex(param.MsgQueue.Length()-1) == param.MsgQueue.GetIndex(param.MsgQueue.Length()-2) {
 			return true
@@ -58,10 +60,10 @@ func Repeat(param *req.TriggerParameter) bool {
 	return false
 }
 
-func ExecSQL(param *req.TriggerParameter) bool {
-	return ut.String().StartWith(param.CqParam.KrMessage, "-sql ")
+func ExecSQL(param *model.TriggerParameter) bool {
+	return ut.String().StartWith(param.CqParam.GetTextMessage(), "-sql ")
 }
 
-func CharacterPortrait(param *req.TriggerParameter) bool {
-	return ut.String().In(param.CqParam.KrMessage, "人格分析")
+func CharacterPortrait(param *model.TriggerParameter) bool {
+	return ut.String().In(param.CqParam.GetTextMessage(), "人格分析")
 }

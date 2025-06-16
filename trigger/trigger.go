@@ -1,7 +1,7 @@
 package trigger
 
 import (
-	"qq-krbot/req"
+	"qq-krbot/model"
 	"qq-krbot/trigger/resp"
 )
 
@@ -17,11 +17,11 @@ const Master = "master" // 机器人主人身份，处理一些特殊数据，�
 
 type Trigger struct {
 	MessageType string
-	Condition   func(*req.TriggerParameter) bool
-	Callback    func(*req.TriggerParameter) (string, error)
+	Condition   func(*model.TriggerParameter) bool
+	Callback    func(*model.TriggerParameter) (string, error)
 }
 
-func addTrigger(messageType string, condition func(*req.TriggerParameter) bool, callback func(*req.TriggerParameter) (string, error)) {
+func addTrigger(messageType string, condition func(*model.TriggerParameter) bool, callback func(*model.TriggerParameter) (string, error)) {
 	Triggers = append(Triggers, Trigger{
 		MessageType: messageType,
 		Condition:   condition,
@@ -29,7 +29,7 @@ func addTrigger(messageType string, condition func(*req.TriggerParameter) bool, 
 	})
 }
 
-func addDynamicTrigger(messageType string, condition func(*req.TriggerParameter) bool, callback func(*req.TriggerParameter) (string, error)) {
+func addDynamicTrigger(messageType string, condition func(*model.TriggerParameter) bool, callback func(*model.TriggerParameter) (string, error)) {
 	DynamicTriggers = append(DynamicTriggers, Trigger{
 		MessageType: messageType,
 		Condition:   condition,

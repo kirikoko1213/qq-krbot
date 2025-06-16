@@ -8,7 +8,7 @@ import (
 	bot_handler "qq-krbot/handler/bot_engine"
 	kr_mcp "qq-krbot/handler/mcp"
 	lg "qq-krbot/logx"
-	"qq-krbot/req"
+	"qq-krbot/model"
 	"strings"
 	"time"
 
@@ -29,7 +29,7 @@ type _AIHandler struct {
 
 var AIHandler = &_AIHandler{}
 
-func (*_AIHandler) ClearSetting(param *req.Param) {
+func (*_AIHandler) ClearSetting(param *model.EngineParam) {
 	storage := getStorage()
 	_ = storage.Clear(param.GroupId, param.UserId)
 }
@@ -72,7 +72,7 @@ func (*_AIHandler) SingleTalk(prompts, message string) (string, error) {
 	return strings.TrimSpace(content), nil
 }
 
-func (*_AIHandler) Do(param *req.Param) (string, error) {
+func (*_AIHandler) Do(param *model.EngineParam) (string, error) {
 	defer func() {
 		if err := recover(); err != nil {
 			lg.Log.Error(err)
@@ -84,7 +84,7 @@ func (*_AIHandler) Do(param *req.Param) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	readySendMessage := fmt.Sprintf("[%s] %s", memberInfo.Card, param.KrMessage)
+	readySendMessage := fmt.Sprintf("[%s] %s", memberInfo.Card, param.GetTextMessage())
 	messageArr, err := storage.GetArrayWithNewContent("user", param.GroupId, param.UserId, readySendMessage)
 	if err != nil {
 		return "", err
