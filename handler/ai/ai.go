@@ -132,7 +132,7 @@ func (*_AIHandler) Do(param *model.EngineParam) (string, error) {
 	return strings.TrimSpace(content), err
 }
 
-func handleToolCalls(chatCompletion *openai.ChatCompletion, openaiMessageArr []openai.ChatCompletionMessageParamUnion, mcpTools []openai.ChatCompletionToolParam, param *req.Param) (*openai.ChatCompletion, error) {
+func handleToolCalls(chatCompletion *openai.ChatCompletion, openaiMessageArr []openai.ChatCompletionMessageParamUnion, mcpTools []openai.ChatCompletionToolParam, param *model.EngineParam) (*openai.ChatCompletion, error) {
 	innerChatCompletion := *chatCompletion
 	innerChatCompletionPtr := &innerChatCompletion
 	var toolCallMessages []openai.ChatCompletionMessageParamUnion
