@@ -40,7 +40,7 @@ func MyWifeOfGroup(param *model.TriggerParameter) bool {
 	return ut.String().In(text, "群老婆")
 }
 
-func ChatGPT(param *model.TriggerParameter) bool {
+func GroupChat(param *model.TriggerParameter) bool {
 	if ut.String().Contains(env.Get("block.account"), strconv.FormatInt(param.CqParam.UserId, 10)) {
 		return false
 	}

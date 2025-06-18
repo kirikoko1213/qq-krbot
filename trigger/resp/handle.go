@@ -59,14 +59,14 @@ func NewDynamicTriggerHandler() *DynamicTriggerHandler {
 	return &DynamicTriggerHandler{}
 }
 
-func (m *DynamicTriggerHandler) RegisterTriggers(f func(messageType string, condition func(*model.TriggerParameter) bool, callback func(*model.TriggerParameter) (string, error))) {
+func (m *DynamicTriggerHandler) RegisterTriggers(f func(scene model.Scene, condition func(*model.TriggerParameter) bool, callback func(*model.TriggerParameter) (string, error))) {
 	dtRepo := repo.NewDynamicTriggerRepo()
 	list, err := dtRepo.FindList(&repo.DynamicTriggerModel{})
 	if err != nil {
 		lg.Log.Error(err)
 		return
 	}
-	for _, model := range list {
-		f(model.MessageType, GetCondition(&model), GetCallback(&model))
+	for _, item := range list {
+		f(item.Scene, GetCondition(&item), GetCallback(&item))
 	}
 }

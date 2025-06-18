@@ -1,18 +1,20 @@
 package repo
 
 import (
-	"gorm.io/gorm"
+	"qq-krbot/model"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type DynamicTriggerModel struct {
-	MessageType        string `json:"messageType" gorm:"message_type"`                // at pr gr
-	ConditionType      string `json:"conditionType" gorm:"condition_type"`            // equal contains startWith endWith handler
-	ConditionValue     string `json:"conditionValue" gorm:"condition_value"`          //
-	TriggerContentType string `json:"triggerContentType" gorm:"trigger_content_type"` // text image ai api func
-	TriggerContent     string `json:"triggerContent" gorm:"trigger_content"`          // 触发内容
-	Sequence           int64  `json:"sequence" gorm:"sequence"`                       // 执行顺序
-	Description        string `json:"description" gorm:"description"`
+	Scene              model.Scene `json:"scene" gorm:"scene"`                             // at pr gr
+	ConditionType      string      `json:"conditionType" gorm:"condition_type"`            // equal contains startWith endWith handler
+	ConditionValue     string      `json:"conditionValue" gorm:"condition_value"`          //
+	TriggerContentType string      `json:"triggerContentType" gorm:"trigger_content_type"` // text image ai api func
+	TriggerContent     string      `json:"triggerContent" gorm:"trigger_content"`          // 触发内容
+	Sequence           int64       `json:"sequence" gorm:"sequence"`                       // 执行顺序
+	Description        string      `json:"description" gorm:"description"`
 	gorm.Model
 }
 
@@ -24,8 +26,8 @@ func NewDynamicTriggerRepo() *DynamicTriggerRepo {
 
 func (*DynamicTriggerRepo) FindList(model *DynamicTriggerModel) ([]DynamicTriggerModel, error) {
 	tx := Sql.Model(&DynamicTriggerModel{})
-	if model.MessageType != "" {
-		tx.Where("trigger_type = ?", model.MessageType)
+	if model.Scene != "" {
+		tx.Where("scene = ?", model.Scene)
 	}
 	if model.ConditionType != "" {
 		tx.Where("condition_type = ?", model.ConditionType)

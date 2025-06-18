@@ -17,5 +17,5 @@ func TestOpenAIClient_ChatWithSystem(t *testing.T) {
 		BaseURL: endPoint,
 		Model:   "qwen-max-latest",
 	}
-	ContextExamples(config)
+	MCPWithContextExample(config)
 }

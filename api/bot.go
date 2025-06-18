@@ -44,10 +44,10 @@ func Bot(c *gin.Context) {
 			MsgQueue: msgQueue,
 		}
 		var handle = func(tg *trigger.Trigger) bool {
-			if tg.MessageType == param.MessageType && tg.Condition(triggerParameter) {
+			if tg.IsMatchScene(param) && tg.Condition(triggerParameter) {
 				msg, err := tg.Callback(triggerParameter)
 
-				switch tg.MessageType {
+				switch tg.Scene {
 				case "pr":
 					if err != nil {
 						Error(err, param.GroupId, param.UserId, "pr")
@@ -55,7 +55,7 @@ func Bot(c *gin.Context) {
 					}
 					bot_handler.SendPrivateMessage(ut.Convert(param.UserId).StringValue(), bot_handler.QQMsg{
 						Message: msg,
-						CQ:      tg.MessageType,
+						CQ:      string(tg.Scene),
 					})
 				case "at":
 					if err != nil {

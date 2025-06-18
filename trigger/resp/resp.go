@@ -111,8 +111,8 @@ func HolidayAnnounce(param *model.TriggerParameter) (string, error) {
 	return message, nil
 }
 
-func ChatGPT(param *model.TriggerParameter) (string, error) {
-	return ai_handler.AIHandler.Do(param.CqParam)
+func GroupChat(param *model.TriggerParameter) (string, error) {
+	return ai_handler.AIHandler.GroupChat(param.CqParam)
 }
 
 // key is groupID, value is message content

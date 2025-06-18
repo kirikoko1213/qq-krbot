@@ -71,3 +71,5 @@ func (p *EngineParam) GetAtMessage() (AtMessage, error) {
 	}
 	return AtMessage{}, nil
 }
+
+type Scene string
