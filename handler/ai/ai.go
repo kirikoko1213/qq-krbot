@@ -8,11 +8,9 @@ import (
 	bot_handler "qq-krbot/handler/bot_engine"
 	lg "qq-krbot/logx"
 	"qq-krbot/model"
-	"strings"
 	"time"
 
 	"github.com/kiririx/krutils/ut"
-	"github.com/tidwall/gjson"
 )
 
 var agentCfg = &agent.OpenAIConfig{
@@ -33,7 +31,7 @@ func init() {
 		LogToolCalls:  true,
 	})
 
-	// 2. 连接MCP
+	// 连接MCP
 	err := mcpManager.Connect()
 	if err != nil {
 		log.Printf("连接MCP失败: %v", err)
@@ -85,41 +83,11 @@ func (*_AIHandler) ClearSetting(param *model.EngineParam) {
 }
 
 func (*_AIHandler) SingleTalk(prompts, message string) (string, error) {
-	defer func() {
-		if err := recover(); err != nil {
-			lg.Log.Error(err)
-		}
-	}()
-	timeout := env.Get("chatgpt.timeout")
-	proxyURL := env.Get("proxy.url")
-	cli := ut.HttpClient()
-	if proxyURL != "" {
-		cli.Proxy(proxyURL)
-	}
-	apiServerURL := env.Get("chatgpt.server.url")
-	if apiServerURL == "" {
-		apiServerURL = "https://api.openai.com"
-	}
-
-	messageArr := make([]map[string]string, 0)
-	messageArr = append(messageArr, map[string]string{"role": "system", "content": prompts})
-	messageArr = append(messageArr, map[string]string{"role": "user", "content": message})
-	json, err := cli.Timeout(time.Second*time.Duration(ut.Convert(timeout).Int64Value())).Headers(map[string]string{
-		"Content-Type":  "application/json",
-		"Authorization": "Bearer " + env.Get("chatgpt.key"),
-	}).PostString(apiServerURL+"/v1/chat/completions", map[string]any{
-		"model":       env.Get("chatgpt.model"),
-		"messages":    messageArr,
-		"temperature": 0.7,
-	})
+	response, err := client.ChatWithSystem(prompts, message)
 	if err != nil {
 		return "", err
 	}
-	content := gjson.Get(json, "choices.0.message.content").String()
-	if content == "" {
-		lg.Log.WithField("AI-response: ", json).Error("AI 回复为空")
-	}
-	return strings.TrimSpace(content), nil
+	return response.Content, nil
 }
 
 func (a *_AIHandler) GroupChat(param *model.EngineParam) (string, error) {

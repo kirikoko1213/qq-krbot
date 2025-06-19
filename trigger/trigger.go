@@ -1,11 +1,8 @@
 package trigger
 
 import (
-	"qq-krbot/helper"
 	"qq-krbot/model"
 	"qq-krbot/trigger/resp"
-
-	"github.com/kiririx/krutils/ut"
 )
 
 var (
@@ -19,22 +16,6 @@ type Trigger struct {
 	Scene     model.Scene
 	Condition func(*model.TriggerParameter) bool
 	Callback  func(*model.TriggerParameter) (string, error)
-}
-
-// IsMatchScene 判断是否匹配场景 todo
-func (t *Trigger) IsMatchScene(param *model.EngineParam) bool {
-	if ut.String().Contains(param.RawMessage, "[CQ:at,") {
-		// 提取消息中@的qq号
-		qqAccount, err := helper.ExtractQQ(param.RawMessage)
-		if err != nil {
-			return false
-		}
-		if qqAccount == param.UserId {
-			return t.Scene == model.SceneAtMe
-		}
-		return t.Scene == model.SceneAtOther
-	}
-	return t.Scene == model.ScenePr
 }
 
 func addTrigger(scene model.Scene, condition func(*model.TriggerParameter) bool, callback func(*model.TriggerParameter) (string, error)) {

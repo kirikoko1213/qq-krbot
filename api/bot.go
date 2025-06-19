@@ -50,11 +50,12 @@ func Bot(c *gin.Context) {
 			MsgQueue:     msgQueue,
 		}
 		var handle = func(tg *trigger.Trigger) bool {
-			if tg.IsMatchScene(param) && tg.Condition(triggerParameter) {
+			if tg.Scene == wrapperParam.Scene && tg.Condition(triggerParameter) {
 				msg, err := tg.Callback(triggerParameter)
 
 				switch tg.Scene {
-				case "pr":
+				// 被私聊
+				case model.ScenePr:
 					if err != nil {
 						Error(err, param.GroupId, param.UserId, "pr")
 						return true
@@ -63,13 +64,15 @@ func Bot(c *gin.Context) {
 						Message: msg,
 						CQ:      string(tg.Scene),
 					})
-				case "at":
+				// 被at
+				case model.SceneAtMe:
 					if err != nil {
 						Error(err, param.GroupId, param.UserId, "at")
 						return true
 					}
 					sendToGroupAt(param.GroupId, msg, param.UserId)
-				case "gr":
+				// 被群聊
+				case model.SceneGr:
 					if err != nil {
 						Error(err, param.GroupId, param.UserId, "gr")
 						return true
