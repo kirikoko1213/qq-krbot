@@ -13,21 +13,21 @@ func GetCondition(tdm *repo.DynamicTriggerModel) func(*model.TriggerParameter) b
 	switch tdm.ConditionType {
 	case "equals":
 		return func(param *model.TriggerParameter) bool {
-			return ut.String().In(strings.TrimSpace(param.CqParam.GetTextMessage()), tdm.ConditionValue)
+			return ut.String().In(strings.TrimSpace(param.WrapperParam.EngineParam.GetTextMessage()), tdm.ConditionValue)
 		}
 
 	case "contains":
 		return func(param *model.TriggerParameter) bool {
-			return ut.String().Contains(param.CqParam.GetTextMessage(), tdm.ConditionValue)
+			return ut.String().Contains(param.WrapperParam.EngineParam.GetTextMessage(), tdm.ConditionValue)
 		}
 
 	case "startsWith":
 		return func(param *model.TriggerParameter) bool {
-			return ut.String().StartWith(param.CqParam.GetTextMessage(), tdm.ConditionValue)
+			return ut.String().StartWith(param.WrapperParam.EngineParam.GetTextMessage(), tdm.ConditionValue)
 		}
 	case "endsWith":
 		return func(param *model.TriggerParameter) bool {
-			return ut.String().EndWith(param.CqParam.GetTextMessage(), tdm.ConditionValue)
+			return ut.String().EndWith(param.WrapperParam.EngineParam.GetTextMessage(), tdm.ConditionValue)
 		}
 	}
 	panic("不存在的conditionType")

@@ -1,21 +1,59 @@
 package model
 
 import (
+	"errors"
 	"qq-krbot/base"
 	"qq-krbot/env"
 	"qq-krbot/helper"
+	lg "qq-krbot/logx"
 	"regexp"
 	"strings"
+
+	"github.com/kiririx/krutils/ut"
 )
 
 type TriggerParameter struct {
-	CqParam  *EngineParam
-	MsgQueue *base.Queue
+	WrapperParam *WrapperParam
+	MsgQueue     *base.Queue
 }
 
 type WrapperParam struct {
-	EngineParam *EngineParam
-	KrMessage   string
+	EngineParam *EngineParam // 原始参数
+	AtAccount   int64        // 被@的qq号
+	Scene       Scene        // 场景 私聊 群聊 at我 at其他
+}
+
+func BuildWrapperParam(param *EngineParam) (*WrapperParam, error) {
+	// 获取场景
+	var scene Scene
+	var atAccount int64
+	if ut.String().Contains(param.RawMessage, "[CQ:at,") {
+		// 提取消息中@的qq号
+		qqAccount, err := helper.ExtractQQ(param.RawMessage)
+		if err != nil {
+			return nil, err
+		}
+		if qqAccount == ut.Convert(env.Get("qq.account")).Int64Value() {
+			scene = SceneAtMe
+			atAccount = qqAccount
+		} else {
+			scene = SceneAtOther
+			atAccount = qqAccount
+		}
+	} else if param.MessageType == env.RangeGr {
+		scene = SceneGr
+	} else if param.MessageType == env.RangePr {
+		scene = ScenePr // 非群组，单人私聊时的触发器
+	} else {
+		lg.Log.Error("获取场景失败，请检查消息类型", param)
+		return nil, errors.New("获取场景失败，请检查消息类型")
+	}
+	// 构建包装参数
+	return &WrapperParam{
+		EngineParam: param,
+		Scene:       scene,
+		AtAccount:   atAccount,
+	}, nil
 }
 
 type EngineParam struct {
@@ -73,3 +111,8 @@ func (p *EngineParam) GetAtMessage() (AtMessage, error) {
 }
 
 type Scene string
+
+const SceneAtMe Scene = "at_me"       // 群组里@我的触发器
+const SceneAtOther Scene = "at_other" // 群组里@其他人的触发器
+const ScenePr Scene = "pr"            // 非群组，单人私聊时的触发器
+const SceneGr Scene = "gr"

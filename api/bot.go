@@ -28,20 +28,26 @@ func Ping(c *gin.Context) {
 }
 
 func Bot(c *gin.Context) {
-	param := &model.EngineParam{}
-	err := c.ShouldBindJSON(param)
+	engineParam := &model.EngineParam{}
+	err := c.ShouldBindJSON(engineParam)
 	if err != nil {
 		lg.Log.Error(err)
 		return
 	}
+	wrapperParam, err := model.BuildWrapperParam(engineParam)
+	if err != nil {
+		lg.Log.Error(err)
+		return
+	}
+	param := wrapperParam.EngineParam
 	if param.PostType == "message" {
 		go func() {
 			messageService.SaveMessage(*param)
 		}()
 		lg.Log.Infof("接收消息: %s", param.RawMessage)
 		triggerParameter := &model.TriggerParameter{
-			CqParam:  param,
-			MsgQueue: msgQueue,
+			WrapperParam: wrapperParam,
+			MsgQueue:     msgQueue,
 		}
 		var handle = func(tg *trigger.Trigger) bool {
 			if tg.IsMatchScene(param) && tg.Condition(triggerParameter) {

@@ -1,6 +1,7 @@
 package trigger
 
 import (
+	"qq-krbot/helper"
 	"qq-krbot/model"
 	"qq-krbot/trigger/resp"
 
@@ -12,10 +13,6 @@ var (
 	DynamicTriggers []Trigger
 )
 
-const atMe model.Scene = "at_me"       // 群组里@我的触发器
-const atOther model.Scene = "at_other" // 群组里@其他人的触发器
-const pr model.Scene = "pr"            // 非群组，单人私聊时的触发器
-const gr model.Scene = "gr"
 const Master = "master" // 机器人主人身份，处理一些特殊数据，如密码管理
 
 type Trigger struct {
@@ -28,10 +25,16 @@ type Trigger struct {
 func (t *Trigger) IsMatchScene(param *model.EngineParam) bool {
 	if ut.String().Contains(param.RawMessage, "[CQ:at,") {
 		// 提取消息中@的qq号
-
-		return t.Scene == atOther
+		qqAccount, err := helper.ExtractQQ(param.RawMessage)
+		if err != nil {
+			return false
+		}
+		if qqAccount == param.UserId {
+			return t.Scene == model.SceneAtMe
+		}
+		return t.Scene == model.SceneAtOther
 	}
-	return t.Scene == pr
+	return t.Scene == model.ScenePr
 }
 
 func addTrigger(scene model.Scene, condition func(*model.TriggerParameter) bool, callback func(*model.TriggerParameter) (string, error)) {
@@ -57,15 +60,15 @@ func ResetTriggers() {
 }
 
 func init() {
-	addTrigger(pr, Help, resp.Help)                               // 帮助
-	addTrigger(at, Help, resp.Help)                               // 帮助
-	addTrigger(pr, Health, resp.Health)                           // ping
-	addTrigger(at, OffWorkTimeAnnounce, resp.OffWorkTimeAnnounce) // 下班时间
-	addTrigger(gr, OffWorkTimeAnnounce, resp.OffWorkTimeAnnounce) // 下班时间
-	addTrigger(at, HolidayAnnounce, resp.HolidayAnnounce)         // 假期倒计时
-	addTrigger(at, AISetting, resp.AISetting)                     // ai角色设置
-	addTrigger(at, GroupChat, resp.GroupChat)
-	addTrigger(gr, Repeat, resp.Repeat)
-	addTrigger(gr, SmartReply, resp.SmartReply)
+	addTrigger(model.ScenePr, Help, resp.Help)                                 // 帮助
+	addTrigger(model.SceneAtMe, Help, resp.Help)                               // 帮助
+	addTrigger(model.ScenePr, Health, resp.Health)                             // ping
+	addTrigger(model.SceneAtMe, OffWorkTimeAnnounce, resp.OffWorkTimeAnnounce) // 下班时间
+	addTrigger(model.SceneGr, OffWorkTimeAnnounce, resp.OffWorkTimeAnnounce)   // 下班时间
+	addTrigger(model.SceneAtMe, HolidayAnnounce, resp.HolidayAnnounce)         // 假期倒计时
+	addTrigger(model.SceneAtMe, AISetting, resp.AISetting)                     // ai角色设置
+	addTrigger(model.SceneAtMe, GroupChat, resp.GroupChat)
+	addTrigger(model.SceneGr, Repeat, resp.Repeat)
+	addTrigger(model.SceneGr, SmartReply, resp.SmartReply)
 	ResetTriggers()
 }

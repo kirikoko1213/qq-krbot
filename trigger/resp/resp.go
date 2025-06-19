@@ -112,7 +112,7 @@ func HolidayAnnounce(param *model.TriggerParameter) (string, error) {
 }
 
 func GroupChat(param *model.TriggerParameter) (string, error) {
-	return ai_handler.AIHandler.GroupChat(param.CqParam)
+	return ai_handler.AIHandler.GroupChat(param.WrapperParam.EngineParam)
 }
 
 // key is groupID, value is message content
@@ -123,25 +123,24 @@ func Repeat(param *model.TriggerParameter) (string, error) {
 		return "", nil
 	}
 	repeatMsg := param.MsgQueue.GetIndex(param.MsgQueue.Length() - 1).(string)
-	v, _ := lastRepeatMsg[param.CqParam.GroupId]
+	v, _ := lastRepeatMsg[param.WrapperParam.EngineParam.GroupId]
 	if v == repeatMsg {
 		return "", nil
 	}
-	lastRepeatMsg[param.CqParam.GroupId] = repeatMsg
+	lastRepeatMsg[param.WrapperParam.EngineParam.GroupId] = repeatMsg
 	return repeatMsg, nil
 }
 func AISetting(param *model.TriggerParameter) (string, error) {
-	cqParam := param.CqParam
-	if ut.String().StartWith(cqParam.GetTextMessage(), "设定") {
-		setting := ut.String().SubStrWithRune(strings.TrimSpace(cqParam.GetTextMessage()), 2, ut.String().LenWithRune(cqParam.GetTextMessage()))
+	if ut.String().StartWith(param.WrapperParam.EngineParam.GetTextMessage(), "设定") {
+		setting := ut.String().SubStrWithRune(strings.TrimSpace(param.WrapperParam.EngineParam.GetTextMessage()), 2, ut.String().LenWithRune(param.WrapperParam.EngineParam.GetTextMessage()))
 		if setting == "" {
-			return "(当前设定): " + env.Get(env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId)), nil
+			return "(当前设定): " + env.Get(env.AITalkGroupAndUserPrompts(param.WrapperParam.EngineParam.GroupId, param.WrapperParam.EngineParam.UserId)), nil
 		}
-		env.SetWithMode(env.ModeDB, env.AITalkGroupAndUserPrompts(cqParam.GroupId, cqParam.UserId), setting)
-		ai_handler.AIHandler.ClearSetting(cqParam)
+		env.SetWithMode(env.ModeDB, env.AITalkGroupAndUserPrompts(param.WrapperParam.EngineParam.GroupId, param.WrapperParam.EngineParam.UserId), setting)
+		ai_handler.AIHandler.ClearSetting(param.WrapperParam.EngineParam)
 		return "角色设定成功！", nil
 	}
-	if ut.String().StartWith(cqParam.GetTextMessage(), "群角色设定") {
+	if ut.String().StartWith(param.WrapperParam.EngineParam.GetTextMessage(), "群角色设定") {
 		// setting := ut.String().SubStrWithRune(strings.TrimSpace(cqParam.KrMessage), 5, ut.String().LenWithRune(cqParam.KrMessage))
 		// if setting == "" {
 		// 	return "(当前设定): " + env.Get(env.AITalkGroupPrompts(cqParam.GroupId)), nil
@@ -155,26 +154,25 @@ func AISetting(param *model.TriggerParameter) (string, error) {
 }
 
 func RankOfGroupMsg(param *model.TriggerParameter) (string, error) {
-	rankArray := repo.NewMessageRecordRepo().RankWithGroupAndToday(param.CqParam.GroupId)
-	return bot_handler.NewRankHandler().BuildResponseString(rankArray, param.CqParam.GroupId), nil
+	rankArray := repo.NewMessageRecordRepo().RankWithGroupAndToday(param.WrapperParam.EngineParam.GroupId)
+	return bot_handler.NewRankHandler().BuildResponseString(rankArray, param.WrapperParam.EngineParam.GroupId), nil
 }
 
 func MyWifeOfGroup(param *model.TriggerParameter) (string, error) {
-	cqParam := param.CqParam
 	startDateTime := time.Now().AddDate(0, 0, -7)
-	accounts := repo.NewMessageRecordRepo().FindQQAccountsByDateAndGroupId(cqParam.GroupId, startDateTime, time.Now())
+	accounts := repo.NewMessageRecordRepo().FindQQAccountsByDateAndGroupId(param.WrapperParam.EngineParam.GroupId, startDateTime, time.Now())
 	wifeArr, remain := bot_handler.NewWifeHandler().BuildWifeGroup(accounts)
 	defWord := "抱歉, 今天你是本群单身狗~"
-	if cqParam.UserId == *remain {
+	if param.WrapperParam.EngineParam.UserId == *remain {
 		return defWord, nil
 	}
 	var targetAccount int64
 	for _, qqAccounts := range wifeArr {
-		if cqParam.UserId == qqAccounts[0] {
+		if param.WrapperParam.EngineParam.UserId == qqAccounts[0] {
 			targetAccount = qqAccounts[1]
 			break
 		}
-		if cqParam.UserId == qqAccounts[1] {
+		if param.WrapperParam.EngineParam.UserId == qqAccounts[1] {
 			targetAccount = qqAccounts[0]
 			break
 		}
@@ -189,8 +187,8 @@ func MyWifeOfGroup(param *model.TriggerParameter) (string, error) {
 }
 
 func CharacterPortrait(param *model.TriggerParameter) (string, error) {
-	groupId := param.CqParam.GroupId
-	userId := param.CqParam.UserId
+	groupId := param.WrapperParam.EngineParam.GroupId
+	userId := param.WrapperParam.EngineParam.UserId
 	messages := repo.NewMessageRecordRepo().FindTextMessageByQQAccountAndGroupId(groupId, userId, 300)
 	if len(messages) < 10 {
 		return "没有足够的消息记录，请继续水群吧", nil
@@ -203,11 +201,11 @@ func CharacterPortrait(param *model.TriggerParameter) (string, error) {
 }
 
 func SmartReply(param *model.TriggerParameter) (string, error) {
-	return ai_handler.AIHandler.SingleTalk(env.Get(env.SmartReplyPrompts()), param.CqParam.GetTextMessage())
+	return ai_handler.AIHandler.SingleTalk(env.Get(env.SmartReplyPrompts()), param.WrapperParam.EngineParam.GetTextMessage())
 }
 
 func ExecSQL(param *model.TriggerParameter) (string, error) {
-	sql := ut.String().SubStrWithRune(strings.TrimSpace(param.CqParam.GetTextMessage()), 4, ut.String().LenWithRune(param.CqParam.GetTextMessage()))
+	sql := ut.String().SubStrWithRune(strings.TrimSpace(param.WrapperParam.EngineParam.GetTextMessage()), 4, ut.String().LenWithRune(param.WrapperParam.EngineParam.GetTextMessage()))
 	query, err := bot_handler.ExecuteSelectQuery(repo.Sql, sql)
 	if err != nil {
 		return "", err
