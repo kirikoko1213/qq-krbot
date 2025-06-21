@@ -1,8 +1,9 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func RegisterRouter(r *gin.Engine) {
@@ -25,4 +26,9 @@ func RegisterRouter(r *gin.Engine) {
 	r.POST("/api/dynamic-trigger/delete", dynamicTriggerAPI.Delete)
 	r.GET("/api/dynamic-trigger/find", dynamicTriggerAPI.Find)
 	r.GET("/api/dynamic-trigger/get-functions", dynamicTriggerAPI.GetFunctions)
+
+	groupAPI := NewGroupAPI()
+	r.GET("/api/group/list", groupAPI.GetGroupList)
+	r.GET("/api/group/:groupId/members", groupAPI.GetMemberList)
+	r.POST("/api/group/member/alias", groupAPI.UpdateMemberAlias)
 }

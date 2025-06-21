@@ -8,6 +8,7 @@ func ResultSuccess(c *gin.Context, data any) {
 	c.JSON(200, gin.H{
 		"data":   data,
 		"status": "success",
+		"code":   "0",
 	})
 }
 
