@@ -17,6 +17,18 @@ const router = createRouter({
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
     },
+    {
+      path: '/member-manage',
+      name: 'memberManage',
+      // 群员管理页面
+      component: () => import('../views/MemberManageView.vue'),
+    },
+    {
+      path: '/trigger',
+      name: 'trigger',
+      // 动态触发器管理页面
+      component: () => import('../views/TriggerView.vue'),
+    },
   ],
 })
 

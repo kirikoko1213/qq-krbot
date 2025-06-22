@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"log"
 	"qq-krbot/env"
+	obm "qq-krbot/handler/bot_engine/model"
 	lg "qq-krbot/logx"
 	"qq-krbot/repo"
 	"time"
+
+	"resty.dev/v3"
 
 	"github.com/kiririx/krutils/ut"
 )
@@ -18,10 +21,12 @@ type GroupMemberNicknameObj struct {
 }
 
 type _OneBotHandler struct {
+	BaseURL             string
 	GroupMemberNickname map[int64]map[int64]string
 }
 
 var OneBotHandler = &_OneBotHandler{
+	BaseURL:             env.Get("onebot.http.url"),
 	GroupMemberNickname: make(map[int64]map[int64]string),
 }
 
@@ -129,6 +134,40 @@ func (receiver _OneBotHandler) SendGroupMsg(groupId int64, msg string) {
 		lg.Log.Error(err)
 		return
 	}
+}
+
+// GetGroupList 获取群列表
+func (receiver _OneBotHandler) GetGroupList(noCache bool) (*obm.ObmResponse[[]obm.GroupInfo], error) {
+	apiURL := fmt.Sprintf("%s%s", receiver.BaseURL, "/get_group_list")
+
+	res, err := resty.New().R().
+		SetBody(map[string]bool{
+			"no_cache": noCache,
+		}).                                             // default request content type is JSON
+		SetResult(&obm.ObmResponse[[]obm.GroupInfo]{}). // or SetResult(LoginResponse{}).
+		Post(apiURL)
+	if err != nil {
+		return nil, err
+	}
+	result := res.Result().(*obm.ObmResponse[[]obm.GroupInfo])
+	return result, nil
+}
+
+// GetGroupMemberList 获取群成员列表
+func (receiver _OneBotHandler) GetGroupMemberList(groupId int64, noCache bool) (*obm.ObmResponse[[]obm.GroupMemberInfo], error) {
+	apiURL := fmt.Sprintf("%s%s", receiver.BaseURL, "/get_group_member_list")
+	res, err := resty.New().R().
+		SetBody(map[string]any{
+			"group_id": groupId,
+			"no_cache": noCache,
+		}).                                                   // default request content type is JSON
+		SetResult(&obm.ObmResponse[[]obm.GroupMemberInfo]{}). // or SetResult(LoginResponse{}).
+		Post(apiURL)
+	if err != nil {
+		return nil, err
+	}
+	result := res.Result().(*obm.ObmResponse[[]obm.GroupMemberInfo])
+	return result, nil
 }
 
 type QQMsg struct {
