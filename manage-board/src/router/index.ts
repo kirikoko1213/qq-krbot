@@ -23,6 +23,12 @@ const router = createRouter({
       // 群员管理页面
       component: () => import('../views/MemberManageView.vue'),
     },
+    {
+      path: '/trigger',
+      name: 'trigger',
+      // 动态触发器管理页面
+      component: () => import('../views/TriggerView.vue'),
+    },
   ],
 })
 

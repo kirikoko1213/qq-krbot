@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"net/http"
 	bot_handler "qq-krbot/handler/bot_engine"
 	lg "qq-krbot/logx"
 	"qq-krbot/repo"
@@ -20,9 +19,9 @@ type GroupInfo struct {
 
 // UpdateAliasRequest 更新别名请求
 type UpdateAliasRequest struct {
-	GroupId string   `json:"groupId" binding:"required"`
-	QQ      string   `json:"qq" binding:"required"`
-	Alias   []string `json:"alias"`
+	GroupId   string   `json:"groupId" binding:"required"`
+	QQAccount string   `json:"qqAccount" binding:"required"`
+	Alias     []string `json:"alias"`
 }
 
 // GroupAPI 群组管理API
@@ -114,24 +113,17 @@ func (g *GroupAPI) GetMemberList(c *gin.Context) {
 func (g *GroupAPI) UpdateMemberAlias(c *gin.Context) {
 	var req UpdateAliasRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    400,
-			"message": "请求参数错误: " + err.Error(),
-			"data":    nil,
-		})
+		ResultError(c, "400", err)
 		return
 	}
 
-	// 这里应该将别名保存到数据库
-	// 暂时只是打印日志表示保存成功
-	lg.Log.Infof("更新群员别名: 群号=%s, QQ=%s, 别名=%v", req.GroupId, req.QQ, req.Alias)
+	groupId := ut.Convert(req.GroupId).Int64Value()
+	qqAccount := ut.Convert(req.QQAccount).Int64Value()
+	err := repo.NewMemberAliasRepo().UpdateAlias(groupId, qqAccount, req.Alias)
+	if err != nil {
+		ResultError(c, "500", err)
+		return
+	}
 
-	// TODO: 实际项目中应该调用数据库服务保存别名
-	// 例如: err := g.memberService.UpdateAlias(req.GroupId, req.QQ, req.Alias)
-
-	c.JSON(http.StatusOK, gin.H{
-		"code":    0,
-		"message": "别名更新成功",
-		"data":    nil,
-	})
+	ResultSuccess(c, nil)
 }

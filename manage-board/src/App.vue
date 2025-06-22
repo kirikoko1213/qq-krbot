@@ -19,6 +19,10 @@ import { Menu as IconMenu, Message, Setting } from '@element-plus/icons-vue'
           <el-icon><icon-menu /></el-icon>
           <span>群员管理</span>
         </el-menu-item>
+        <el-menu-item index="/trigger">
+          <el-icon><setting /></el-icon>
+          <span>触发器管理</span>
+        </el-menu-item>
         <el-menu-item index="/about">
           <el-icon><setting /></el-icon>
           <span>关于</span>
@@ -26,7 +30,7 @@ import { Menu as IconMenu, Message, Setting } from '@element-plus/icons-vue'
       </el-menu>
     </el-aside>
     <el-container>
-      <el-header height="60px">管理系统</el-header>
+      <el-header height="60px">QQ 机器人后台</el-header>
       <el-main>
         <RouterView />
       </el-main>
@@ -39,9 +43,6 @@ import { Menu as IconMenu, Message, Setting } from '@element-plus/icons-vue'
   height: 100vh;
 }
 
-.el-aside {
-  background-color: #304156;
-}
 
 .el-menu {
   border-right: none;

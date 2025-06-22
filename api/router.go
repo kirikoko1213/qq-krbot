@@ -7,6 +7,9 @@ import (
 )
 
 func RegisterRouter(r *gin.Engine) {
+	// 注册响应日志中间件
+	r.Use(ResponseLoggerMiddleware())
+
 	r.POST("/ping", Ping)
 	r.POST("/api/bot", Bot)
 	r.StaticFS("/photo", http.Dir("./photo"))

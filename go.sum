@@ -56,8 +56,6 @@ github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnr
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/kiririx/easy-config v0.1.5 h1:5o2vg6GR/awgpDXHB3PWEfTFg8U4J5g8jYqydrRlCKg=
 github.com/kiririx/easy-config v0.1.5/go.mod h1:IWtXTAsedX3s1vQWotqeBhcqyxGUXEVhumy2x4CWYdU=
-github.com/kiririx/krutils v0.1.27 h1:mj3RW90QqtzAROvdXfZCtVGBu9Sv7hSfSk5XJ1EfUV8=
-github.com/kiririx/krutils v0.1.27/go.mod h1:jO5B4+jjWlO65ArJuXr0BAnhOXbZHK8+Iccm1Aw+4bQ=
 github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
 github.com/klauspost/cpuid/v2 v2.2.9 h1:66ze0taIn2H33fBvCkXuv9BmCwDfafmiIVpKV9kKGuY=
 github.com/klauspost/cpuid/v2 v2.2.9/go.mod h1:rqkxqrZ1EhYM9G+hXH7YdowN5R5RGN6NK4QwQ3WMXF8=

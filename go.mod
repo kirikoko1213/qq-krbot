@@ -2,6 +2,8 @@ module qq-krbot
 
 go 1.24.1
 
+replace github.com/kiririx/krutils => ../krutils-go
+
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/kiririx/easy-config v0.1.5
