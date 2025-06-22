@@ -28,6 +28,12 @@ func Ping(c *gin.Context) {
 }
 
 func Bot(c *gin.Context) {
+	//body, err := io.ReadAll(c.Request.Body)
+	//if err != nil {
+	//	lg.Log.Error(err)
+	//	return
+	//}
+	//fmt.Println(string(body))
 	engineParam := &model.EngineParam{}
 	err := c.ShouldBindJSON(engineParam)
 	if err != nil {

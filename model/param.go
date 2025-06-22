@@ -6,7 +6,6 @@ import (
 	"qq-krbot/env"
 	"qq-krbot/helper"
 	lg "qq-krbot/logx"
-	"regexp"
 	"strings"
 
 	"github.com/kiririx/krutils/ut"
@@ -56,18 +55,70 @@ func BuildWrapperParam(param *EngineParam) (*WrapperParam, error) {
 	}, nil
 }
 
+/*
+  - 消息格式
+    {
+    "self_id": 1105624883,
+    "user_id": 2187391949,
+    "time": 1750563155,
+    "message_id": 1009718967,
+    "message_seq": 2002,
+    "message_type": "group",
+    "sender": {
+    "user_id": 2187391949,
+    "nickname": "†✰⇝树理♡†",
+    "card": "†✰⇝TT树理♡†",
+    "role": "admin",
+    "title": ""
+    },
+    "raw_message": "121",
+    "font": 14,
+    "sub_type": "normal",
+    "message": [
+    {
+    "type": "text",
+    "data": {
+    "text": "121"
+    }
+    }
+    ],
+    "message_format": "array",
+    "post_type": "message",
+    "group_id": 815182520
+    }
+*/
 type EngineParam struct {
-	Time        int64                `json:"time"`
-	SelfId      string               `json:"self_id"`
-	PostType    string               `json:"post_type"` // message notice request meta_event
-	SubType     string               `json:"sub_type"`
-	MessageId   int64                `json:"message_id"`
-	Message     string               `json:"message"`
-	MessageType env.MessageRangeType `json:"message_type"` // group private
-	GroupId     int64                `json:"group_id"`
-	RawMessage  string               `json:"raw_message"`
-	Font        int64                `json:"font"`
-	UserId      int64                `json:"user_id"`
+	SelfId        int64                `json:"self_id"`        // 机器人id
+	UserId        int64                `json:"user_id"`        // 发送者id
+	Time          int64                `json:"time"`           // 时间
+	MessageId     int64                `json:"message_id"`     // 1009718967
+	MessageSeq    int64                `json:"message_seq"`    // 2002
+	MessageType   env.MessageRangeType `json:"message_type"`   // group private
+	Sender        Sender               `json:"sender"`         // 发送者
+	RawMessage    string               `json:"raw_message"`    // 原始消息
+	Font          int64                `json:"font"`           // 字体
+	SubType       string               `json:"sub_type"`       // 子类型 normal |
+	Message       []MessageItem        `json:"message"`        // 消息内容
+	MessageFormat string               `json:"message_format"` // array | string
+	PostType      string               `json:"post_type"`      // message notice request meta_event
+	GroupId       int64                `json:"group_id"`       // 群组id
+}
+
+type Sender struct {
+	UserId   int64  `json:"user_id"`
+	Nickname string `json:"nickname"`
+	Card     string `json:"card"`
+	Role     string `json:"role"`
+	Title    string `json:"title"`
+}
+
+type MessageItem struct {
+	Type string          `json:"type"`
+	Data MessageItemData `json:"data"`
+}
+
+type MessageItemData struct {
+	Text string `json:"text"`
 }
 
 type AtMessage struct {
@@ -76,38 +127,24 @@ type AtMessage struct {
 }
 
 // GetTextMessage 获取文本消息
-func (p *EngineParam) GetTextMessage() string {
-	if p.MessageType == env.RangeGr {
-		return p.RawMessage
-	}
-	if p.MessageType == env.RangePr {
-		return p.Message
-	}
-	return p.Message
-}
-
-// GetAtMessage 获取@消息
-func (p *EngineParam) GetAtMessage() (AtMessage, error) {
-	regex := `\[CQ:at,qq=(\d+)\]`
-	reg, err := regexp.Compile(regex)
-	if err != nil {
-		return AtMessage{}, err
-	}
-	matchedStr := reg.FindString(p.RawMessage)
-	if matchedStr == "" {
-		return AtMessage{}, nil
-	}
-	if strings.HasPrefix(p.RawMessage, "[CQ:at,qq=") {
-		atAccount, err := helper.ExtractQQ(matchedStr)
-		if err != nil {
-			return AtMessage{}, err
+func (p *WrapperParam) GetTextMessage() string {
+	ep := p.EngineParam
+	if ep.MessageType == env.RangeGr {
+		var text string
+		for _, item := range ep.Message {
+			if item.Type == "text" {
+				text += item.Data.Text
+				text += ";"
+			}
 		}
-		return AtMessage{
-			AtAccount: atAccount,
-			Message:   helper.ParseCQCodes(p.RawMessage),
-		}, nil
+		text = strings.TrimRight(text, ";")
+		return text
 	}
-	return AtMessage{}, nil
+	if ep.MessageType == env.RangePr {
+		// todo
+		return ep.Message[0].Data.Text
+	}
+	return ""
 }
 
 type Scene string

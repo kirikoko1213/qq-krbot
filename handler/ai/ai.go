@@ -90,22 +90,22 @@ func (*_AIHandler) SingleTalk(prompts, message string) (string, error) {
 	return response.Content, nil
 }
 
-func (a *_AIHandler) GroupChat(param *model.EngineParam) (string, error) {
+func (a *_AIHandler) GroupChat(param *model.WrapperParam) (string, error) {
 	defer func() {
 		if err := recover(); err != nil {
 			lg.Log.Error(err)
 		}
 	}()
 	// 获取群成员信息
-	memberInfo, err := bot_handler.OneBotHandler.GetGroupMemberInfo(param.GroupId, param.UserId, false)
+	memberInfo, err := bot_handler.OneBotHandler.GetGroupMemberInfo(param.EngineParam.GroupId, param.EngineParam.UserId, false)
 	if err != nil {
 		return "", err
 	}
 	readySendMessage := fmt.Sprintf("发送人: %s 发送内容: %s", memberInfo.Card, param.GetTextMessage())
 
 	// 会话ID
-	sessionID := fmt.Sprintf("%d_%d", param.GroupId, param.UserId)
-	systemPrompt := a.GetSystemPrompt(param)
+	sessionID := fmt.Sprintf("%d_%d", param.EngineParam.GroupId, param.EngineParam.UserId)
+	systemPrompt := a.GetSystemPrompt(param.EngineParam)
 
 	response, err := client.ChatWithToolsSessionAndSystem(sessionID, systemPrompt, readySendMessage)
 	if err != nil {

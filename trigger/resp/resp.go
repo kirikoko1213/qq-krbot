@@ -112,7 +112,7 @@ func HolidayAnnounce(param *model.TriggerParameter) (string, error) {
 }
 
 func GroupChat(param *model.TriggerParameter) (string, error) {
-	return ai_handler.AIHandler.GroupChat(param.WrapperParam.EngineParam)
+	return ai_handler.AIHandler.GroupChat(param.WrapperParam)
 }
 
 // key is groupID, value is message content
@@ -131,8 +131,8 @@ func Repeat(param *model.TriggerParameter) (string, error) {
 	return repeatMsg, nil
 }
 func AISetting(param *model.TriggerParameter) (string, error) {
-	if ut.String().StartWith(param.WrapperParam.EngineParam.GetTextMessage(), "设定") {
-		setting := ut.String().SubStrWithRune(strings.TrimSpace(param.WrapperParam.EngineParam.GetTextMessage()), 2, ut.String().LenWithRune(param.WrapperParam.EngineParam.GetTextMessage()))
+	if ut.String().StartWith(param.WrapperParam.GetTextMessage(), "设定") {
+		setting := ut.String().SubStrWithRune(strings.TrimSpace(param.WrapperParam.GetTextMessage()), 2, ut.String().LenWithRune(param.WrapperParam.GetTextMessage()))
 		if setting == "" {
 			return "(当前设定): " + env.Get(env.AITalkGroupAndUserPrompts(param.WrapperParam.EngineParam.GroupId, param.WrapperParam.EngineParam.UserId)), nil
 		}
@@ -140,7 +140,7 @@ func AISetting(param *model.TriggerParameter) (string, error) {
 		ai_handler.AIHandler.ClearSetting(param.WrapperParam.EngineParam)
 		return "角色设定成功！", nil
 	}
-	if ut.String().StartWith(param.WrapperParam.EngineParam.GetTextMessage(), "群角色设定") {
+	if ut.String().StartWith(param.WrapperParam.GetTextMessage(), "群角色设定") {
 		// setting := ut.String().SubStrWithRune(strings.TrimSpace(cqParam.KrMessage), 5, ut.String().LenWithRune(cqParam.KrMessage))
 		// if setting == "" {
 		// 	return "(当前设定): " + env.Get(env.AITalkGroupPrompts(cqParam.GroupId)), nil
@@ -201,11 +201,11 @@ func CharacterPortrait(param *model.TriggerParameter) (string, error) {
 }
 
 func SmartReply(param *model.TriggerParameter) (string, error) {
-	return ai_handler.AIHandler.SingleTalk(env.Get(env.SmartReplyPrompts()), param.WrapperParam.EngineParam.GetTextMessage())
+	return ai_handler.AIHandler.SingleTalk(env.Get(env.SmartReplyPrompts()), param.WrapperParam.GetTextMessage())
 }
 
 func ExecSQL(param *model.TriggerParameter) (string, error) {
-	sql := ut.String().SubStrWithRune(strings.TrimSpace(param.WrapperParam.EngineParam.GetTextMessage()), 4, ut.String().LenWithRune(param.WrapperParam.EngineParam.GetTextMessage()))
+	sql := ut.String().SubStrWithRune(strings.TrimSpace(param.WrapperParam.GetTextMessage()), 4, ut.String().LenWithRune(param.WrapperParam.GetTextMessage()))
 	query, err := bot_handler.ExecuteSelectQuery(repo.Sql, sql)
 	if err != nil {
 		return "", err
