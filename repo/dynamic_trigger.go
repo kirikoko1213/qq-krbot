@@ -94,3 +94,85 @@ func (d *DynamicTriggerRepo) Save(model *DynamicTriggerModel) (*DynamicTriggerMo
 	}
 	return model, nil // 保存或更新成功，返回保存后的模型和 nil
 }
+
+// MoveUp 上移触发器（降低sequence值）
+func (d *DynamicTriggerRepo) MoveUp(id int64) error {
+	// 获取当前记录
+	currentModel, err := d.FindOne(id)
+	if err != nil {
+		return err
+	}
+
+	// 查找前一个记录（sequence更小的）
+	var prevModel DynamicTriggerModel
+	err = Sql.Where("sequence < ?", currentModel.Sequence).
+		Order("sequence DESC").
+		First(&prevModel).Error
+	if err != nil {
+		return err // 已经是第一个了，无法上移
+	}
+
+	// 交换sequence值
+	currentSeq := currentModel.Sequence
+	prevSeq := prevModel.Sequence
+
+	// 开启事务
+	tx := Sql.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	// 更新sequence值
+	if err := tx.Model(&currentModel).Update("sequence", prevSeq).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Model(&prevModel).Update("sequence", currentSeq).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
+}
+
+// MoveDown 下移触发器（增加sequence值）
+func (d *DynamicTriggerRepo) MoveDown(id int64) error {
+	// 获取当前记录
+	currentModel, err := d.FindOne(id)
+	if err != nil {
+		return err
+	}
+
+	// 查找后一个记录（sequence更大的）
+	var nextModel DynamicTriggerModel
+	err = Sql.Where("sequence > ?", currentModel.Sequence).
+		Order("sequence ASC").
+		First(&nextModel).Error
+	if err != nil {
+		return err // 已经是最后一个了，无法下移
+	}
+
+	// 交换sequence值
+	currentSeq := currentModel.Sequence
+	nextSeq := nextModel.Sequence
+
+	// 开启事务
+	tx := Sql.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	// 更新sequence值
+	if err := tx.Model(&currentModel).Update("sequence", nextSeq).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Model(&nextModel).Update("sequence", currentSeq).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
+}

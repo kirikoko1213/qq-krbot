@@ -18,7 +18,6 @@
         style="width: 100%"
         :height="600"
       >
-        <el-table-column prop="sequence" label="序号" width="80" />
         <el-table-column prop="description" label="描述" width="150" />
         <el-table-column prop="scene" label="消息类型" width="100">
           <template #default="{ row }">
@@ -54,8 +53,26 @@
             {{ formatDate(row.CreatedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
-          <template #default="{ row }">
+        <el-table-column label="操作" width="200" fixed="right">
+          <template #default="{ row, $index }">
+            <el-button-group>
+              <el-button 
+                size="small" 
+                :disabled="$index === 0" 
+                @click="moveUp(row.ID)"
+                title="上移"
+              >
+                ↑
+              </el-button>
+              <el-button 
+                size="small" 
+                :disabled="$index === triggerList.length - 1" 
+                @click="moveDown(row.ID)"
+                title="下移"
+              >
+                ↓
+              </el-button>
+            </el-button-group>
             <el-button size="small" @click="editTrigger(row)">编辑</el-button>
             <el-popconfirm
               title="确定删除这个触发器吗？"
@@ -83,26 +100,12 @@
         :rules="formRules"
         label-width="120px"
       >
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="描述" prop="description">
-              <el-input
-                v-model="currentTrigger.description"
-                placeholder="请输入触发器描述"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="执行顺序" prop="sequence">
-              <el-input-number
-                v-model="currentTrigger.sequence"
-                :min="1"
-                controls-position="right"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
+                 <el-form-item label="描述" prop="description">
+           <el-input
+             v-model="currentTrigger.description"
+             placeholder="请输入触发器描述"
+           />
+         </el-form-item>
 
         <el-row :gutter="20">
           <el-col :span="12">
@@ -125,7 +128,7 @@
                 placeholder="请选择条件类型"
                 style="width: 100%"
               >
-                <el-option label="完全匹配" value="equal" />
+                <el-option label="完全匹配" value="equals" />
                 <el-option label="包含" value="contains" />
                 <el-option label="开头匹配" value="startWith" />
                 <el-option label="结尾匹配" value="endWith" />
@@ -211,6 +214,8 @@ import {
   saveTrigger,
   deleteTrigger,
   getFunctions,
+  moveTriggerUp,
+  moveTriggerDown,
   type DynamicTrigger
 } from '@/api/trigger'
 
@@ -231,7 +236,7 @@ const currentTrigger = reactive<DynamicTrigger>({
   conditionValue: '',
   triggerContentType: '',
   triggerContent: '',
-  sequence: 1,
+  sequence: 0,
   description: ''
 })
 
@@ -344,6 +349,38 @@ const deleteTriggerItem = async (id: number) => {
   }
 }
 
+// 上移触发器
+const moveUp = async (id: number) => {
+  try {
+    const response = await moveTriggerUp(id)
+    if (response.status === 'success') {
+      ElMessage.success('上移成功')
+      fetchTriggerList()
+    } else {
+      ElMessage.error('上移失败')
+    }
+  } catch (error) {
+    ElMessage.error('上移失败')
+    console.error(error)
+  }
+}
+
+// 下移触发器
+const moveDown = async (id: number) => {
+  try {
+    const response = await moveTriggerDown(id)
+    if (response.status === 'success') {
+      ElMessage.success('下移成功')
+      fetchTriggerList()
+    } else {
+      ElMessage.error('下移失败')
+    }
+  } catch (error) {
+    ElMessage.error('下移失败')
+    console.error(error)
+  }
+}
+
 // 重置表单
 const resetForm = () => {
   if (formRef.value) {
@@ -355,7 +392,7 @@ const resetForm = () => {
     conditionValue: '',
     triggerContentType: '',
     triggerContent: '',
-    sequence: 1,
+    sequence: 0,
     description: ''
   })
   selectedFunction.value = ''
@@ -397,7 +434,7 @@ const messageTypeTagType = (type: string): 'success' | 'warning' | 'info' | 'pri
 
 const conditionTypeLabel = (type: string) => {
   const labels: Record<string, string> = {
-    'equal': '完全匹配',
+    'equals': '完全匹配',
     'contains': '包含',
     'startWith': '开头匹配',
     'endWith': '结尾匹配',

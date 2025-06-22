@@ -1,11 +1,12 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/kiririx/krutils/ut"
 	"qq-krbot/repo"
 	"qq-krbot/trigger"
 	"qq-krbot/trigger/resp"
+
+	"github.com/gin-gonic/gin"
+	"github.com/kiririx/krutils/ut"
 )
 
 type DynamicTriggerAPI struct{}
@@ -51,6 +52,7 @@ func (api *DynamicTriggerAPI) Delete(c *gin.Context) {
 		ResultError(c, "500", err)
 		return
 	}
+	trigger.ResetTriggers()
 	ResultSuccess(c, nil)
 }
 
@@ -71,4 +73,44 @@ func (api *DynamicTriggerAPI) GetFunctions(c *gin.Context) {
 		funcNameList = append(funcNameList, handle.Description)
 	}
 	ResultSuccess(c, funcNameList)
+}
+
+// MoveUp 上移触发器
+func (api *DynamicTriggerAPI) MoveUp(c *gin.Context) {
+	rp := repo.NewDynamicTriggerRepo()
+	params := make(map[string]int64)
+	err := c.ShouldBindJSON(&params)
+	if err != nil {
+		ResultError(c, "400", err)
+		return
+	}
+
+	err = rp.MoveUp(params["id"])
+	if err != nil {
+		ResultError(c, "500", err)
+		return
+	}
+
+	trigger.ResetTriggers()
+	ResultSuccess(c, nil)
+}
+
+// MoveDown 下移触发器
+func (api *DynamicTriggerAPI) MoveDown(c *gin.Context) {
+	rp := repo.NewDynamicTriggerRepo()
+	params := make(map[string]int64)
+	err := c.ShouldBindJSON(&params)
+	if err != nil {
+		ResultError(c, "400", err)
+		return
+	}
+
+	err = rp.MoveDown(params["id"])
+	if err != nil {
+		ResultError(c, "500", err)
+		return
+	}
+
+	trigger.ResetTriggers()
+	ResultSuccess(c, nil)
 }

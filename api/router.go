@@ -29,6 +29,8 @@ func RegisterRouter(r *gin.Engine) {
 	r.POST("/api/dynamic-trigger/delete", dynamicTriggerAPI.Delete)
 	r.GET("/api/dynamic-trigger/find", dynamicTriggerAPI.Find)
 	r.GET("/api/dynamic-trigger/get-functions", dynamicTriggerAPI.GetFunctions)
+	r.POST("/api/dynamic-trigger/move-up", dynamicTriggerAPI.MoveUp)
+	r.POST("/api/dynamic-trigger/move-down", dynamicTriggerAPI.MoveDown)
 
 	groupAPI := NewGroupAPI()
 	r.GET("/api/group/list", groupAPI.GetGroupList)

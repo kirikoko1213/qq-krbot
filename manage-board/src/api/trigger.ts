@@ -37,4 +37,14 @@ export const getTrigger = (id: number) => {
 // 获取函数列表
 export const getFunctions = () => {
   return request.get<string[]>('/dynamic-trigger/get-functions')
+}
+
+// 上移触发器
+export const moveTriggerUp = (id: number) => {
+  return request.post('/dynamic-trigger/move-up', { id })
+}
+
+// 下移触发器
+export const moveTriggerDown = (id: number) => {
+  return request.post('/dynamic-trigger/move-down', { id })
 } 
