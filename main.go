@@ -4,6 +4,7 @@ import (
 	"log"
 	"qq-krbot/api"
 	"qq-krbot/env"
+	ai_handler "qq-krbot/handler/ai"
 	kr_mcp "qq-krbot/handler/mcp"
 	"qq-krbot/repo"
 	"qq-krbot/work"
@@ -20,7 +21,7 @@ func main() {
 	// 初始化 SSE MCP 服务端
 	kr_mcp.RunSSEMCPServer()
 	// 初始化 SSE MCP 客户端
-	kr_mcp.InitSSEMCPClient()
+	ai_handler.InitClient()
 
 	work.Boardcast()
 	r := gin.Default()

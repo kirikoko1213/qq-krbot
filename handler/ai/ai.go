@@ -8,6 +8,8 @@ import (
 	bot_handler "qq-krbot/handler/bot_engine"
 	lg "qq-krbot/logx"
 	"qq-krbot/model"
+	"qq-krbot/repo"
+	"strings"
 	"time"
 
 	"github.com/kiririx/krutils/ut"
@@ -22,7 +24,10 @@ var agentCfg = &agent.OpenAIConfig{
 
 var client *agent.OpenAIClient
 
-func init() {
+func InitClient() {
+	// 延迟 1s
+	time.Sleep(time.Millisecond * 500)
+	client = agent.NewOpenAIClient(agentCfg)
 	storage := agent.NewMemoryContextStorage(50) // 最多存储50条消息
 
 	mcpManager := agent.NewMCPManager(&agent.MCPConfig{
@@ -75,6 +80,9 @@ func (*_AIHandler) GetSystemPrompt(param *model.EngineParam) string {
 	// 规则
 	systemPrompt += "**规则**\n"
 	systemPrompt += getAIRulePrompt(param.UserId, param.GroupId)
+	// 约定
+	systemPrompt += "**约定**\n"
+	systemPrompt += "消息发送人的昵称会在 [发送人：昵称1,昵称2] 这里面，昵称1和昵称2都是发送人的昵称，可能是1个，也可能是多个。"
 	return systemPrompt
 }
 
@@ -101,7 +109,16 @@ func (a *_AIHandler) GroupChat(param *model.WrapperParam) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	readySendMessage := fmt.Sprintf("发送人: %s 发送内容: %s", memberInfo.Card, param.GetTextMessage())
+	// 查询群员的别名
+	alias, err := repo.NewMemberAliasRepo().FindAliasByGroupIdAndQQAccount(param.EngineParam.GroupId, param.EngineParam.UserId)
+	if err != nil {
+		return "", err
+	}
+	nickname := memberInfo.Card
+	if alias != nil && len(alias) > 0 {
+		nickname = strings.Join(alias, ",")
+	}
+	readySendMessage := fmt.Sprintf("[发送人: %s] [发送内容: %s]", nickname, param.GetTextMessage())
 
 	// 会话ID
 	sessionID := fmt.Sprintf("%d_%d", param.EngineParam.GroupId, param.EngineParam.UserId)
