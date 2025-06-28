@@ -50,6 +50,24 @@ class GroupService {
       alias
     );
   };
+
+  getMemberAlias = async (
+    groupId: number,
+    qqAccount: number
+  ): Promise<string[]> => {
+    const alias =
+      await repositories.memberAliasRepository.findAliasByGroupIdAndQQAccount(
+        BigInt(groupId),
+        BigInt(qqAccount)
+      );
+    if (alias.length === 0) {
+      const member = await botEngine.getGroupMemberInfo(groupId, qqAccount);
+      if (member) {
+        return [member.nickname];
+      }
+    }
+    return alias;
+  };
 }
 
 export default GroupService;

@@ -1222,6 +1222,13 @@ camelcase@^6.2.0:
   resolved "https://registry.npmjs.org/camelcase/-/camelcase-6.3.0.tgz"
   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
+candy-conf@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/candy-conf/-/candy-conf-1.0.2.tgz#93710a1389a087f62282de90989ffc2f54b7079c"
+  integrity sha512-PHFWn6L+39rMpnK5J+jrMMSZMPUN/BPknLQC6nuFQaL4nalsp0GuFzh7f1xfD+U7OxoPr5rTNKtuMtWeHlo1kQ==
+  dependencies:
+    mysql2 "^3.14.1"
+
 caniuse-lite@^1.0.30001726:
   version "1.0.30001726"
   resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001726.tgz"
@@ -2851,9 +2858,9 @@ ms@^2.1.1, ms@^2.1.3:
   resolved "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
-mysql2@^3.6.5:
+mysql2@^3.14.1:
   version "3.14.1"
-  resolved "https://registry.npmjs.org/mysql2/-/mysql2-3.14.1.tgz"
+  resolved "https://registry.yarnpkg.com/mysql2/-/mysql2-3.14.1.tgz#7786160abf086fd279e0253e16e34c05b4ab3b3e"
   integrity sha512-7ytuPQJjQB8TNAYX/H2yhL+iQOnIBjAMam361R7UAL0lOVXWjtdrmoL9HYKqKoLp/8UUTRcvo1QPvK9KL7wA8w==
   dependencies:
     aws-ssl-profiles "^1.1.1"

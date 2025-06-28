@@ -2,7 +2,7 @@ import conf from '../config/config';
 import request from './request';
 import { GroupInfo, GroupMemberInfo } from './types';
 
-const baseUrl = conf.get('QQ_ENGINE_URL');
+const baseUrl = await conf.get('QQ_ENGINE_URL');
 
 export const botEngine = {
   /**
@@ -100,7 +100,7 @@ export const botEngine = {
       no_cache: 'true',
     });
     return response.data.map((member: any) => ({
-      groupId: member.group_id,
+      groupId: member.user_id,
       userId: member.user_id,
       nickname: member.nickname,
       card: member.card,
