@@ -1,5 +1,4 @@
 import Router from 'koa-router';
-import userRoutes from './user';
 import groupRoutes from './group';
 import messageRoutes from './message';
 import triggerRoutes from './trigger';
@@ -17,7 +16,6 @@ router.get('/health', async ctx => {
 });
 
 // 注册子路由
-router.use('/users', userRoutes.routes());
 router.use('/groups', groupRoutes.routes());
 router.use('/message', messageRoutes.routes());
 router.use('/triggers', triggerRoutes.routes());

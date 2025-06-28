@@ -10,81 +10,81 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  qqId      String   @unique @map("qq_id")
-  nickname  String?
-  avatar    String?
-  level     Int      @default(1)
-  exp       Int      @default(0)
-  coins     Int      @default(0)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  messages    Message[]
-  memberAlias MemberAlias[]
-
-  @@map("users")
-}
-
-model Group {
-  id        Int      @id @default(autoincrement())
-  qqId      String   @unique @map("qq_id")
-  name      String?
-  avatar    String?
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  messages        Message[]
-  dynamicTriggers DynamicTrigger[]
-  memberAliases   MemberAlias[]
-
-  @@map("groups")
-}
-
-model Message {
-  id        Int      @id @default(autoincrement())
-  messageId String   @unique @map("message_id")
-  content   String   @db.Text
-  type      String   @default("text")
-  userId    Int      @map("user_id")
-  groupId   Int?     @map("group_id")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user  User   @relation(fields: [userId], references: [id])
-  group Group? @relation(fields: [groupId], references: [id])
-
-  @@map("messages")
-}
-
-model DynamicTrigger {
-  id          Int      @id @default(autoincrement())
-  keyword     String
-  response    String   @db.Text
-  triggerType String   @default("exact") @map("trigger_type") // exact, contain, regex
-  groupId     Int      @map("group_id")
-  createdBy   String   @map("created_by") // qq_id
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  group Group @relation(fields: [groupId], references: [id])
-
-  @@map("dynamic_triggers")
-}
-
+// 更新后的MemberAlias模型，基于DDL
 model MemberAlias {
-  id       Int    @id @default(autoincrement())
-  alias    String
-  userId   Int    @map("user_id")
-  groupId  Int    @map("group_id")
-  setBy    String @map("set_by") // qq_id
-  createdAt DateTime @default(now()) @map("created_at")
+  id         BigInt    @id @default(autoincrement())
+  groupId    BigInt    @map("group_id")
+  qqAccount  BigInt    @map("qq_account")
+  alias      Json?
+  createdAt  DateTime? @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt  DateTime? @updatedAt @map("updated_at") @db.DateTime(3)
+  deletedAt  DateTime? @map("deleted_at") @db.DateTime(3)
 
-  user  User  @relation(fields: [userId], references: [id])
-  group Group @relation(fields: [groupId], references: [id])
+  @@map("member_alias")
+}
 
-  @@unique([userId, groupId])
-  @@map("member_aliases")
+// 新增AiRole模型
+model AiRole {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  qqAccount  BigInt?   @map("qq_account")
+  qqNickname String?   @map("qq_nickname") @db.LongText
+  groupId    BigInt?   @map("group_id")
+  groupName  String?   @map("group_name") @db.LongText
+  setting    String?   @db.LongText
+  createdAt  DateTime? @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt  DateTime? @updatedAt @map("updated_at") @db.DateTime(3)
+  deletedAt  DateTime? @map("deleted_at") @db.DateTime(3)
+
+  @@unique([qqAccount, groupId], map: "idx_ai_role_qq_account_group_id")
+  @@index([deletedAt], map: "idx_ai_role_deleted_at")
+  @@map("ai_role")
+}
+
+// 新增DynamicTriggerModel模型
+model DynamicTriggerModel {
+  id                  BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  triggerType         String?   @map("trigger_type") @db.LongText
+  conditionType       String?   @map("condition_type") @db.LongText
+  conditionValue      String?   @map("condition_value") @db.LongText
+  triggerContentType  String?   @map("trigger_content_type") @db.LongText
+  triggerContent      String?   @map("trigger_content") @db.LongText
+  sequence            BigInt?
+  scene               String?   @db.VarChar(20)
+  description         String?   @db.LongText
+  createdAt           DateTime? @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt           DateTime? @updatedAt @map("updated_at") @db.DateTime(3)
+  deletedAt           DateTime? @map("deleted_at") @db.DateTime(3)
+
+  @@index([deletedAt], map: "idx_dynamic_trigger_models_deleted_at")
+  @@map("dynamic_trigger_models")
+}
+
+// 新增MessageCount模型
+model MessageCount {
+  id        BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  groupId   String?   @map("group_id") @db.LongText
+  quantity  BigInt?
+  createdAt DateTime? @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt DateTime? @updatedAt @map("updated_at") @db.DateTime(3)
+  deletedAt DateTime? @map("deleted_at") @db.DateTime(3)
+
+  @@index([deletedAt], map: "idx_message_count_deleted_at")
+  @@map("message_count")
+}
+
+// 新增MessageRecord模型
+model MessageRecord {
+  id          BigInt    @id @default(autoincrement())
+  qqAccount   BigInt    @map("qq_account")
+  qqNickname  String?   @map("qq_nickname") @db.LongText
+  groupId     BigInt    @map("group_id")
+  groupName   String?   @map("group_name") @db.LongText
+  message     String?   @db.LongText
+  messageType String?   @map("message_type") @db.LongText
+  createdAt   DateTime? @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt   DateTime? @updatedAt @map("updated_at") @db.DateTime(3)
+  deletedAt   DateTime? @map("deleted_at") @db.DateTime(3)
+
+  @@index([deletedAt], map: "idx_message_record_deleted_at")
+  @@map("message_record")
 } 

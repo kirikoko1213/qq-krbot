@@ -56,9 +56,21 @@ export const botEngine = {
       no_cache: 'true',
     });
     return {
-      nickname: response.data.nickname as string,
-      card: response.data.card as string,
-      title: response.data.title as string,
+      groupId: groupId,
+      userId: userId,
+      nickname: response.data.nickname,
+      card: response.data.card,
+      title: response.data.title,
+      sex: response.data.sex,
+      age: response.data.age,
+      area: response.data.area,
+      level: response.data.level,
+      qqLevel: response.data.qq_level,
+      joinTime: response.data.join_time,
+      lastSentTime: response.data.last_sent_time,
+      titleExpireTime: response.data.title_expire_time,
+      unfriendly: response.data.unfriendly,
+      cardChangeable: response.data.card_changeable,
     };
   },
   /**
@@ -67,6 +79,42 @@ export const botEngine = {
    */
   getGroupList: async (): Promise<GroupInfo[]> => {
     const response = await request.post(`${baseUrl}/get_group_list`);
-    return response.data as GroupInfo[];
+    return response.data.map((group: any) => ({
+      groupId: group.group_id,
+      groupName: group.group_name,
+      groupMemo: group.group_memo,
+      groupCreateTime: group.group_create_time,
+      memberCount: group.member_count,
+      maxMemberCount: group.max_member_count,
+      remarkName: group.remark_name,
+    }));
+  },
+  /**
+   * 获取群成员列表
+   * @param groupId 群组ID
+   * @returns 群成员列表
+   */
+  getGroupMemberList: async (groupId: number): Promise<GroupMemberInfo[]> => {
+    const response = await request.post(`${baseUrl}/get_group_member_list`, {
+      group_id: groupId,
+      no_cache: 'true',
+    });
+    return response.data.map((member: any) => ({
+      groupId: groupId,
+      userId: member.user_id,
+      nickname: member.nickname,
+      card: member.card,
+      title: member.title,
+      sex: member.sex,
+      age: member.age,
+      area: member.area,
+      level: member.level,
+      qqLevel: member.qq_level,
+      joinTime: member.join_time,
+      lastSentTime: member.last_sent_time,
+      titleExpireTime: member.title_expire_time,
+      unfriendly: member.unfriendly,
+      cardChangeable: member.card_changeable,
+    }));
   },
 };

@@ -3,13 +3,13 @@ import bodyParser from 'koa-bodyparser';
 import cors from 'koa-cors';
 import logger from 'koa-logger';
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
 
 import router from './routes';
 import { errorHandler } from './middleware/errorHandler';
 import { Logger } from './utils/logger';
 import { initTriggers } from './handlers/trigger/trigger';
 import { debugDemo } from './debug-demo';
+import { dbService } from './services/database';
 
 // 加载环境变量
 dotenv.config();
@@ -20,8 +20,8 @@ initTriggers();
 const app = new Koa();
 const port = process.env.PORT || 3000;
 
-// 初始化 Prisma 客户端
-export const prisma = new PrismaClient();
+// 导出prisma实例以保持向后兼容性
+export const prisma = dbService.prisma;
 
 // 中间件
 app.use(errorHandler);
@@ -55,9 +55,14 @@ app.use(router.allowedMethods());
 // 启动服务器
 async function startServer() {
   try {
+    // 使用我们创建的数据库服务连接数据库
+    await dbService.connect();
+
     // 测试数据库连接
-    await prisma.$connect();
-    Logger.info('数据库连接成功');
+    const isConnected = await dbService.ping();
+    if (!isConnected) {
+      throw new Error('数据库连接测试失败');
+    }
 
     app.listen(port, () => {
       Logger.info(`服务器运行在端口 ${port}`);
@@ -72,13 +77,13 @@ async function startServer() {
 // 优雅关闭
 process.on('SIGINT', async () => {
   Logger.info('正在关闭服务器...');
-  await prisma.$disconnect();
+  await dbService.disconnect();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   Logger.info('正在关闭服务器...');
-  await prisma.$disconnect();
+  await dbService.disconnect();
   process.exit(0);
 });
 

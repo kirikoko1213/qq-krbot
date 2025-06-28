@@ -1,15 +1,27 @@
 export type GroupInfo = {
-  group_id: number;
-  group_name: string;
-  group_memo: string;
-  group_create_time: number;
-  member_count: number;
-  max_member_count: number;
-  remark_name: string;
+  groupId: number;
+  groupName: string;
+  groupMemo: string;
+  groupCreateTime: number;
+  memberCount: number;
+  maxMemberCount: number;
+  remarkName: string;
 };
 
 export type GroupMemberInfo = {
+  groupId: number;
+  userId: number;
   nickname: string;
   card: string;
-  title: string;
+  title?: string;
+  sex?: string;
+  age?: number;
+  area?: string;
+  level?: string;
+  qqLevel?: number;
+  joinTime?: number;
+  lastSentTime?: number;
+  titleExpireTime?: number;
+  unfriendly?: boolean;
+  cardChangeable?: boolean;
 };
