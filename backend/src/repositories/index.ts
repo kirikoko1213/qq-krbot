@@ -1,73 +1,28 @@
-// Repository 类导出
-export { default as MemberAliasRepository } from './memberAliasRepository';
-export { default as DynamicTriggerRepository } from './dynamicTriggerRepository';
-export { default as MessageRecordRepository } from './messageRecordRepository';
-export { default as AiRoleRepository } from './aiRoleRepository';
-export { default as MessageCountRepository } from './messageCountRepository';
+import { AiRoleRepository } from './aiRoleRepository.js';
+import { DynamicTriggerRepository } from './dynamicTriggerRepository.js';
+import { MemberAliasRepository } from './memberAliasRepository.js';
+import { MessageCountRepository } from './messageCountRepository.js';
+import { MessageRecordRepository } from './messageRecordRepository.js';
+import { dbService } from '../services/database.js';
 
-// 类型导出
-export type { RankResult } from './messageRecordRepository';
+// 使用单例的 Prisma 客户端实例
+const prisma = dbService.prisma;
 
-// Repository 工厂类
-import MemberAliasRepository from './memberAliasRepository';
-import DynamicTriggerRepository from './dynamicTriggerRepository';
-import MessageRecordRepository from './messageRecordRepository';
-import AiRoleRepository from './aiRoleRepository';
-import MessageCountRepository from './messageCountRepository';
+// 创建并导出所有 repository 实例
+export const aiRoleRepository = new AiRoleRepository(prisma);
+export const dynamicTriggerRepository = new DynamicTriggerRepository(prisma);
+export const memberAliasRepository = new MemberAliasRepository(prisma);
+export const messageCountRepository = new MessageCountRepository(prisma);
+export const messageRecordRepository = new MessageRecordRepository(prisma);
 
-export class RepositoryFactory {
-  private static memberAliasRepo: MemberAliasRepository;
-  private static dynamicTriggerRepo: DynamicTriggerRepository;
-  private static messageRecordRepo: MessageRecordRepository;
-  private static aiRoleRepo: AiRoleRepository;
-  private static messageCountRepo: MessageCountRepository;
+// 导出 Prisma 客户端
+export { prisma };
 
-  static getMemberAliasRepository(): MemberAliasRepository {
-    if (!this.memberAliasRepo) {
-      this.memberAliasRepo = new MemberAliasRepository();
-    }
-    return this.memberAliasRepo;
-  }
-
-  static getDynamicTriggerRepository(): DynamicTriggerRepository {
-    if (!this.dynamicTriggerRepo) {
-      this.dynamicTriggerRepo = new DynamicTriggerRepository();
-    }
-    return this.dynamicTriggerRepo;
-  }
-
-  static getMessageRecordRepository(): MessageRecordRepository {
-    if (!this.messageRecordRepo) {
-      this.messageRecordRepo = new MessageRecordRepository();
-    }
-    return this.messageRecordRepo;
-  }
-
-  static getAiRoleRepository(): AiRoleRepository {
-    if (!this.aiRoleRepo) {
-      this.aiRoleRepo = new AiRoleRepository();
-    }
-    return this.aiRoleRepo;
-  }
-
-  static getMessageCountRepository(): MessageCountRepository {
-    if (!this.messageCountRepo) {
-      this.messageCountRepo = new MessageCountRepository();
-    }
-    return this.messageCountRepo;
-  }
-
-  // 获取所有Repository实例
-  static getAllRepositories() {
-    return {
-      memberAlias: this.getMemberAliasRepository(),
-      dynamicTrigger: this.getDynamicTriggerRepository(),
-      messageRecord: this.getMessageRecordRepository(),
-      aiRole: this.getAiRoleRepository(),
-      messageCount: this.getMessageCountRepository(),
-    };
-  }
-}
-
-// 默认导出工厂实例
-export default RepositoryFactory;
+// 导出类型
+export type {
+  AiRoleRepository,
+  DynamicTriggerRepository,
+  MemberAliasRepository,
+  MessageCountRepository,
+  MessageRecordRepository,
+};

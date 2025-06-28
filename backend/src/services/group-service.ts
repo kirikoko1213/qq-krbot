@@ -14,9 +14,9 @@ class GroupService {
 
     // 获取数据库里的群成员别名
     const memberAliases =
-      await repositories.memberAlias.findAliasByGroupId(groupId);
+      await repositories.memberAliasRepository.findAliasByGroupId(groupId);
     const memberAliasesMap = new Map<number, string[]>(
-      memberAliases.map(alias => {
+      memberAliases.map((alias: any) => {
         return [Number(alias.qqAccount), alias.alias as string[]];
       })
     );
@@ -44,7 +44,7 @@ class GroupService {
     qqAccount: number,
     alias: string[]
   ) => {
-    await repositories.memberAlias.updateAlias(
+    await repositories.memberAliasRepository.updateAlias(
       BigInt(groupId),
       BigInt(qqAccount),
       alias

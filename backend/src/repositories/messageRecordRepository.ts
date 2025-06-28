@@ -1,6 +1,7 @@
 import { MessageRecord } from '@prisma/client';
 import { dbService } from '../services/database';
 import { Logger } from '../utils/logger';
+import { PrismaClient } from '@prisma/client';
 
 export interface RankResult {
   qqAccount: bigint;
@@ -8,7 +9,7 @@ export interface RankResult {
 }
 
 export class MessageRecordRepository {
-  constructor(private prisma = dbService.prisma) {}
+  constructor(private prisma: PrismaClient) {}
 
   /**
    * 保存消息记录
@@ -258,6 +259,129 @@ export class MessageRecordRepository {
       });
     } catch (error) {
       Logger.error('Failed to delete message record:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取今日群消息排行榜
+   */
+  async getRankWithGroupAndToday(groupId: string, limit: number = 5) {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const groupIdBigInt = BigInt(groupId);
+
+      const result = await this.prisma.messageRecord.groupBy({
+        by: ['qqAccount'],
+        where: {
+          groupId: groupIdBigInt,
+          createdAt: {
+            gte: today,
+            lt: tomorrow,
+          },
+        },
+        _count: {
+          id: true,
+        },
+        orderBy: {
+          _count: {
+            id: 'desc',
+          },
+        },
+        take: limit,
+      });
+
+      // 获取成员别名信息
+      const qqAccounts = result.map(r => r.qqAccount);
+      const memberAliases = await this.prisma.memberAlias.findMany({
+        where: {
+          qqAccount: { in: qqAccounts },
+          groupId: groupIdBigInt,
+        },
+      });
+
+      const aliasMap = new Map(
+        memberAliases.map(alias => [alias.qqAccount.toString(), alias.alias])
+      );
+
+      return result.map(record => ({
+        memberId: record.qqAccount.toString(),
+        memberAlias: aliasMap.get(record.qqAccount.toString()) || null,
+        messageCount: record._count?.id || 0,
+      }));
+    } catch (error) {
+      Logger.error('获取消息排行榜失败', { groupId, error });
+      throw error;
+    }
+  }
+
+  /**
+   * 记录消息
+   */
+  async createRecord(data: {
+    groupId: string;
+    memberId: string;
+    messageContent: string;
+    messageType?: string;
+  }) {
+    try {
+      return await this.prisma.messageRecord.create({
+        data: {
+          groupId: BigInt(data.groupId),
+          qqAccount: BigInt(data.memberId),
+          message: data.messageContent,
+          messageType: data.messageType,
+        },
+      });
+    } catch (error) {
+      Logger.error('创建消息记录失败', { data, error });
+      throw error;
+    }
+  }
+
+  /**
+   * 获取群消息统计
+   */
+  async getGroupMessageStats(
+    groupId: string,
+    startDate?: Date,
+    endDate?: Date
+  ) {
+    try {
+      const where: any = { groupId: BigInt(groupId) };
+
+      if (startDate || endDate) {
+        where.createdAt = {};
+        if (startDate) where.createdAt.gte = startDate;
+        if (endDate) where.createdAt.lte = endDate;
+      }
+
+      const total = await this.prisma.messageRecord.count({ where });
+
+      const memberStats = await this.prisma.messageRecord.groupBy({
+        by: ['qqAccount'],
+        where,
+        _count: {
+          id: true,
+        },
+        orderBy: {
+          _count: {
+            id: 'desc',
+          },
+        },
+      });
+
+      return {
+        total,
+        memberCount: memberStats.length,
+        memberStats,
+      };
+    } catch (error) {
+      Logger.error('获取群消息统计失败', { groupId, error });
       throw error;
     }
   }

@@ -1,4 +1,5 @@
 import { MessageScene, WrapMessageType } from '../../types/message';
+import { ChatTrigger } from './triggers/chat';
 import { helpTrigger } from './triggers/help';
 import { offlineWorkTrigger } from './triggers/offline-work';
 import {
@@ -40,4 +41,5 @@ const triggerHandler = {
 export function initTriggers() {
   triggerHandler.addTrigger(['atMe'], helpTrigger);
   triggerHandler.addTrigger(['atMe', 'atAll', 'gr'], offlineWorkTrigger);
+  triggerHandler.addTrigger(['atMe'], ChatTrigger);
 }

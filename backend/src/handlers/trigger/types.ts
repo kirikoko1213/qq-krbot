@@ -1,6 +1,6 @@
 import { MessageScene, WrapMessageType } from '../../types/message';
 
-type TriggerParameter = {
+export type TriggerParameter = {
   message: WrapMessageType;
 };
 
