@@ -4,7 +4,6 @@ import bodyParser from 'koa-bodyparser';
 import cors from 'koa-cors';
 import logger from 'koa-logger';
 
-import { debugDemo } from './debug-demo';
 import { initTriggers } from './handlers/trigger/trigger';
 import { errorHandler } from './middleware/errorHandler';
 import router from './routes';
@@ -33,18 +32,6 @@ app.use(
     textLimit: '10mb',
   })
 );
-
-// 添加调试演示路由
-app.use(async (ctx, next) => {
-  if (ctx.path === '/debug-demo') {
-    const result = debugDemo(); // 👈 在这里设置断点
-    // 现在只需要设置data，响应格式化中间件会自动包装
-    ctx.data = result;
-    ctx.message = '调试演示完成';
-    return;
-  }
-  await next();
-});
 
 // 路由
 app.use(router.routes());
