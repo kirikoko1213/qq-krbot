@@ -1,7 +1,6 @@
-import { TriggerType } from '../trigger';
+import { TriggerModel } from '../types';
 
-export const helpTrigger: TriggerType = {
-  scene: 'atMe',
+export const helpTrigger: TriggerModel = {
   condition: parameter => {
     return (
       parameter.message.textMessage.trim() === '?' ||
@@ -9,7 +8,7 @@ export const helpTrigger: TriggerType = {
       parameter.message.textMessage.trim() === ''
     );
   },
-  callback: () => {
+  callback: async () => {
     return (
       '🌸使用方法🌸\n' +
       '1. 报时: @我并发送 报时，显示下班时间' +

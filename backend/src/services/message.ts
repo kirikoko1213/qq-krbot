@@ -1,9 +1,6 @@
 import { botEngine } from '../handlers/obt/onebot';
-import {
-  dynamicTriggers,
-  fixedTriggers,
-  TriggerType,
-} from '../handlers/trigger';
+import { dynamicTriggers, fixedTriggers } from '../handlers/trigger';
+import { TriggerType } from '../handlers/trigger/types';
 import {
   EngineMessageType,
   MessageScene,
@@ -25,7 +22,7 @@ export class MessageService {
         trigger.scene === wrapMessage.scene &&
         trigger.condition({ message: wrapMessage })
       ) {
-        const response = trigger.callback({ message: wrapMessage });
+        const response = await trigger.callback({ message: wrapMessage });
         await botEngine.sendGroupMessage(
           wrapMessage.engineMessage.group_id,
           response

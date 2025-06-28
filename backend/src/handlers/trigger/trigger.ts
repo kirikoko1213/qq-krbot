@@ -1,28 +1,24 @@
 import { MessageScene, WrapMessageType } from '../../types/message';
 import { helpTrigger } from './triggers/help';
-
-type TriggerParameter = {
-  message: WrapMessageType;
-};
-
-type ConditionFunc = (parameter: TriggerParameter) => boolean;
-type CallbackFunc = (parameter: TriggerParameter) => string;
-
-export type TriggerType = {
-  scene: MessageScene;
-  condition: ConditionFunc;
-  callback: CallbackFunc;
-};
+import { offlineWorkTrigger } from './triggers/offline-work';
+import {
+  CallbackFunc,
+  ConditionFunc,
+  TriggerModel,
+  TriggerType,
+} from './types';
 
 export const fixedTriggers: TriggerType[] = [];
 export const dynamicTriggers: TriggerType[] = [];
 
 const triggerHandler = {
-  addTrigger: (trigger: TriggerType) => {
-    fixedTriggers.push({
-      scene: trigger.scene,
-      condition: trigger.condition,
-      callback: trigger.callback,
+  addTrigger: (scene: MessageScene[], trigger: TriggerModel) => {
+    scene.forEach(scene => {
+      fixedTriggers.push({
+        scene,
+        condition: trigger.condition,
+        callback: trigger.callback,
+      });
     });
   },
   addDynamicTrigger: (
@@ -42,5 +38,6 @@ const triggerHandler = {
 };
 
 export function initTriggers() {
-  triggerHandler.addTrigger(helpTrigger);
+  triggerHandler.addTrigger(['atMe'], helpTrigger);
+  triggerHandler.addTrigger(['atMe', 'atAll', 'gr'], offlineWorkTrigger);
 }
