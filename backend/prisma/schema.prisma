@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  qqId      String   @unique @map("qq_id")
+  nickname  String?
+  avatar    String?
+  level     Int      @default(1)
+  exp       Int      @default(0)
+  coins     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  messages    Message[]
+  memberAlias MemberAlias[]
+
+  @@map("users")
+}
+
+model Group {
+  id        Int      @id @default(autoincrement())
+  qqId      String   @unique @map("qq_id")
+  name      String?
+  avatar    String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  messages        Message[]
+  dynamicTriggers DynamicTrigger[]
+  memberAliases   MemberAlias[]
+
+  @@map("groups")
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  messageId String   @unique @map("message_id")
+  content   String   @db.Text
+  type      String   @default("text")
+  userId    Int      @map("user_id")
+  groupId   Int?     @map("group_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User   @relation(fields: [userId], references: [id])
+  group Group? @relation(fields: [groupId], references: [id])
+
+  @@map("messages")
+}
+
+model DynamicTrigger {
+  id          Int      @id @default(autoincrement())
+  keyword     String
+  response    String   @db.Text
+  triggerType String   @default("exact") @map("trigger_type") // exact, contain, regex
+  groupId     Int      @map("group_id")
+  createdBy   String   @map("created_by") // qq_id
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  group Group @relation(fields: [groupId], references: [id])
+
+  @@map("dynamic_triggers")
+}
+
+model MemberAlias {
+  id       Int    @id @default(autoincrement())
+  alias    String
+  userId   Int    @map("user_id")
+  groupId  Int    @map("group_id")
+  setBy    String @map("set_by") // qq_id
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  group Group @relation(fields: [groupId], references: [id])
+
+  @@unique([userId, groupId])
+  @@map("member_aliases")
+} 

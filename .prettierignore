@@ -1,0 +1,58 @@
+# 依赖
+**/node_modules/
+
+# 构建输出
+**/dist/
+**/build/
+
+# 日志
+**/logs/
+**/*.log
+
+# 覆盖率报告
+**/coverage/
+
+# Prisma 生成文件
+**/prisma/migrations/
+
+# 环境变量文件
+**/.env
+**/.env.*
+
+# 锁定文件
+**/package-lock.json
+**/yarn.lock
+
+# 编辑器配置
+**/.vscode/
+**/.idea/
+
+# 操作系统文件
+**/.DS_Store
+**/Thumbs.db
+
+# 临时文件
+**/*.tmp
+**/*.temp
+
+# 数据库文件
+**/*.db
+**/*.sqlite
+
+# Go 相关文件
+**/*.go
+**/go.mod
+**/go.sum
+
+# 可执行文件
+**/*.exe
+**/__debug_bin*
+
+# 配置文件
+**/nginx.conf
+**/supervisord.conf
+**/Dockerfile
+
+# README 文件
+README.md
+**/README.md 
