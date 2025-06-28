@@ -1,20 +1,8 @@
 import { DynamicTriggerModel, Prisma } from '@prisma/client';
-import { dbService } from '../database';
-import { Logger } from '../../utils/logger';
+import { dbService } from '../services/database';
+import { Logger } from '../utils/logger';
 
-export interface IDynamicTriggerRepository {
-  findList(
-    filter: Partial<DynamicTriggerModel>
-  ): Promise<DynamicTriggerModel[]>;
-  findOne(id: bigint): Promise<DynamicTriggerModel | null>;
-  delete(id: bigint): Promise<void>;
-  save(model: Partial<DynamicTriggerModel>): Promise<DynamicTriggerModel>;
-  getMaxSequence(): Promise<bigint>;
-  moveUp(id: bigint): Promise<void>;
-  moveDown(id: bigint): Promise<void>;
-}
-
-export class DynamicTriggerRepository implements IDynamicTriggerRepository {
+export class DynamicTriggerRepository {
   constructor(private prisma = dbService.prisma) {}
 
   /**

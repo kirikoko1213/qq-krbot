@@ -100,7 +100,7 @@ export const botEngine = {
       no_cache: 'true',
     });
     return response.data.map((member: any) => ({
-      groupId: groupId,
+      groupId: member.group_id,
       userId: member.user_id,
       nickname: member.nickname,
       card: member.card,

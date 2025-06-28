@@ -37,9 +37,21 @@
         style="width: 100%"
         :height="500"
       >
-        <el-table-column prop="groupId" label="群号" width="150" />
-        <el-table-column prop="qqAccount" label="QQ号" width="150" />
-        <el-table-column prop="nickname" label="QQ昵称" width="200" />
+        <el-table-column prop="qqAccount" label="QQ号" width="100" />
+        <el-table-column prop="nickname" label="QQ昵称" width="140" />
+        <el-table-column prop="card" label="群名片" width="100" />
+        <el-table-column prop="title" label="头衔" width="110" />
+        <el-table-column prop="level" label="等级" width="70" />
+        <el-table-column prop="joinTime" label="入群时间" width="150">
+          <template #default="{ row }">
+            {{ new Date(row.joinTime * 1000).toLocaleString() }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="lastSentTime" label="最后发言时间" width="150">
+          <template #default="{ row }">
+            {{ new Date(row.lastSentTime * 1000).toLocaleString() }}
+          </template>
+        </el-table-column>
         <el-table-column prop="alias" label="群员别名" width="300">
           <template #default="{ row, $index }">
             <div class="alias-container">

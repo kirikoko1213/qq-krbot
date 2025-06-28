@@ -1,29 +1,13 @@
-import { MessageRecord, Prisma } from '@prisma/client';
-import { dbService } from '../database';
-import { Logger } from '../../utils/logger';
+import { MessageRecord } from '@prisma/client';
+import { dbService } from '../services/database';
+import { Logger } from '../utils/logger';
 
 export interface RankResult {
   qqAccount: bigint;
   count: bigint;
 }
 
-export interface IMessageRecordRepository {
-  save(qqAccount: bigint, groupId: bigint, message: string): Promise<void>;
-  rankWithGroupAndToday(groupId: bigint): Promise<RankResult[]>;
-  rankWithGroupAndYesterday(groupId: bigint): Promise<RankResult[]>;
-  findQQAccountsByDateAndGroupId(
-    groupId: bigint,
-    startDateTime: Date,
-    endDateTime: Date
-  ): Promise<bigint[]>;
-  findTextMessageByQQAccountAndGroupId(
-    groupId: bigint,
-    qqAccount: bigint,
-    limit: number
-  ): Promise<string[]>;
-}
-
-export class MessageRecordRepository implements IMessageRecordRepository {
+export class MessageRecordRepository {
   constructor(private prisma = dbService.prisma) {}
 
   /**

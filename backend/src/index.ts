@@ -1,15 +1,15 @@
+import dotenv from 'dotenv';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import cors from 'koa-cors';
 import logger from 'koa-logger';
-import dotenv from 'dotenv';
 
-import router from './routes';
-import { errorHandler } from './middleware/errorHandler';
-import { Logger } from './utils/logger';
-import { initTriggers } from './handlers/trigger/trigger';
 import { debugDemo } from './debug-demo';
+import { initTriggers } from './handlers/trigger/trigger';
+import { errorHandler } from './middleware/errorHandler';
+import router from './routes';
 import { dbService } from './services/database';
+import { Logger } from './utils/logger';
 
 // 加载环境变量
 dotenv.config();
@@ -23,8 +23,8 @@ const port = process.env.PORT || 3000;
 // 导出prisma实例以保持向后兼容性
 export const prisma = dbService.prisma;
 
-// 中间件
-app.use(errorHandler);
+// 中间件（顺序很重要）
+app.use(errorHandler); // 错误处理（最先）
 app.use(logger());
 app.use(cors());
 app.use(
@@ -38,11 +38,9 @@ app.use(
 app.use(async (ctx, next) => {
   if (ctx.path === '/debug-demo') {
     const result = debugDemo(); // 👈 在这里设置断点
-    ctx.body = {
-      success: true,
-      message: '调试演示完成',
-      data: result,
-    };
+    // 现在只需要设置data，响应格式化中间件会自动包装
+    ctx.data = result;
+    ctx.message = '调试演示完成';
     return;
   }
   await next();

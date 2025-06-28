@@ -1,21 +1,8 @@
-import { AiRole, Prisma } from '@prisma/client';
-import { dbService } from '../database';
-import { Logger } from '../../utils/logger';
+import { AiRole } from '@prisma/client';
+import { dbService } from '../services/database';
+import { Logger } from '../utils/logger';
 
-export interface IAiRoleRepository {
-  findByQQAccountAndGroupId(
-    qqAccount: bigint,
-    groupId: bigint
-  ): Promise<AiRole | null>;
-  findByQQAccount(qqAccount: bigint): Promise<AiRole[]>;
-  findByGroupId(groupId: bigint): Promise<AiRole[]>;
-  save(model: Partial<AiRole>): Promise<AiRole>;
-  update(id: bigint, data: Partial<AiRole>): Promise<AiRole>;
-  delete(id: bigint): Promise<void>;
-  findAll(): Promise<AiRole[]>;
-}
-
-export class AiRoleRepository implements IAiRoleRepository {
+export class AiRoleRepository {
   constructor(private prisma = dbService.prisma) {}
 
   /**

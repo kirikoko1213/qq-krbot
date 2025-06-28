@@ -1,18 +1,8 @@
-import { MessageCount, Prisma } from '@prisma/client';
-import { dbService } from '../database';
-import { Logger } from '../../utils/logger';
+import { MessageCount } from '@prisma/client';
+import { dbService } from '../services/database';
+import { Logger } from '../utils/logger';
 
-export interface IMessageCountRepository {
-  findByGroupId(groupId: string): Promise<MessageCount | null>;
-  updateCount(groupId: string, quantity: bigint): Promise<MessageCount>;
-  incrementCount(groupId: string): Promise<MessageCount>;
-  decrementCount(groupId: string): Promise<MessageCount>;
-  resetCount(groupId: string): Promise<MessageCount>;
-  getAllCounts(): Promise<MessageCount[]>;
-  delete(id: bigint): Promise<void>;
-}
-
-export class MessageCountRepository implements IMessageCountRepository {
+export class MessageCountRepository {
   constructor(private prisma = dbService.prisma) {}
 
   /**

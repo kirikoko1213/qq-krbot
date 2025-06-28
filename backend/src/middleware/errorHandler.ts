@@ -1,5 +1,6 @@
 import { Context, Next } from 'koa';
 import { Logger } from '../utils/logger';
+import { error as errorResponse, getErrorResponse } from '../types/response';
 
 export async function errorHandler(ctx: Context, next: Next) {
   try {
@@ -10,27 +11,32 @@ export async function errorHandler(ctx: Context, next: Next) {
       method: ctx.method,
       url: ctx.url,
       error: error.message,
-      stack: error.stack,
       userAgent: ctx.headers['user-agent'],
       ip: ctx.ip,
     });
 
-    // 设置错误响应
-    ctx.status = error.status || 500;
+    // 单独输出堆栈信息，确保换行显示
+    if (error.stack) {
+      console.error('错误堆栈信息:\n', error.stack);
+    }
+
+    ctx.status = 200;
 
     // 根据环境决定是否暴露错误详情
     const isDevelopment = process.env.NODE_ENV === 'development';
 
-    ctx.body = {
-      success: false,
-      message: isDevelopment ? error.message : '服务器内部错误',
-      ...(isDevelopment && {
-        error: error.message,
-        stack: error.stack,
-      }),
-    };
+    // 构建统一错误响应格式
+    const response = getErrorResponse(error.message) as any;
 
-    // 确保响应头正确设置
+    // 开发环境下添加更多错误信息
+    if (isDevelopment) {
+      response.data = {
+        stack: error.stack,
+        details: error,
+      };
+    }
+
+    ctx.body = response;
     ctx.set('Content-Type', 'application/json');
   }
 }

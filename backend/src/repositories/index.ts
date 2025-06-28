@@ -1,19 +1,12 @@
-// Repository 实例导出
+// Repository 类导出
 export { default as MemberAliasRepository } from './memberAliasRepository';
 export { default as DynamicTriggerRepository } from './dynamicTriggerRepository';
 export { default as MessageRecordRepository } from './messageRecordRepository';
 export { default as AiRoleRepository } from './aiRoleRepository';
 export { default as MessageCountRepository } from './messageCountRepository';
 
-// Repository 接口导出
-export type { IMemberAliasRepository } from './memberAliasRepository';
-export type { IDynamicTriggerRepository } from './dynamicTriggerRepository';
-export type {
-  IMessageRecordRepository,
-  RankResult,
-} from './messageRecordRepository';
-export type { IAiRoleRepository } from './aiRoleRepository';
-export type { IMessageCountRepository } from './messageCountRepository';
+// 类型导出
+export type { RankResult } from './messageRecordRepository';
 
 // Repository 工厂类
 import MemberAliasRepository from './memberAliasRepository';

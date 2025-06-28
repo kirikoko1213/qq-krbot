@@ -1,25 +1,8 @@
-import { MemberAlias, Prisma } from '@prisma/client';
-import { dbService } from '../database';
-import { Logger } from '../../utils/logger';
+import { MemberAlias } from '@prisma/client';
+import { dbService } from '../services/database';
+import { Logger } from '../utils/logger';
 
-export interface IMemberAliasRepository {
-  findAliasByGroupIdAndQQAccount(
-    groupId: bigint,
-    qqAccount: bigint
-  ): Promise<string[]>;
-  findAliasByGroupId(groupId: bigint): Promise<MemberAlias[]>;
-  findByGroupIdAndQQAccount(
-    groupId: bigint,
-    qqAccount: bigint
-  ): Promise<MemberAlias | null>;
-  updateAlias(
-    groupId: bigint,
-    qqAccount: bigint,
-    alias: string[]
-  ): Promise<void>;
-}
-
-export class MemberAliasRepository implements IMemberAliasRepository {
+export class MemberAliasRepository {
   constructor(private prisma = dbService.prisma) {}
 
   /**
@@ -61,12 +44,15 @@ export class MemberAliasRepository implements IMemberAliasRepository {
   /**
    * 根据群组ID查找所有别名
    */
-  async findAliasByGroupId(groupId: bigint): Promise<MemberAlias[]> {
+  async findAliasByGroupId(groupId: number): Promise<MemberAlias[]> {
     try {
       return await this.prisma.memberAlias.findMany({
         where: {
           groupId: groupId,
           deletedAt: null,
+        },
+        orderBy: {
+          qqAccount: 'asc',
         },
       });
     } catch (error) {

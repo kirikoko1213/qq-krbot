@@ -3,10 +3,30 @@ import { Logger } from '../utils/logger';
 
 class DatabaseService {
   private static instance: DatabaseService;
-  private _prisma: PrismaClient;
+  private _prisma: ReturnType<typeof this.createPrismaClient>;
 
   private constructor() {
-    this._prisma = new PrismaClient({
+    this._prisma = this.createPrismaClient();
+  }
+
+  private createPrismaClient() {
+    // return new PrismaClient({
+    //   errorFormat: 'pretty',
+    // }).$extends({
+    //   query: {
+    //     $allModels: {
+    //       // 这会拦截所有模型的所有操作
+    //       $allOperations: async ({ model, operation, args, query }) => {
+    //         // 执行原始查询
+    //         const result = await query(args);
+
+    //         // 转换结果中的所有 BigInt
+    //         return convertBigIntToNumber(result);
+    //       },
+    //     },
+    //   },
+    // });
+    return new PrismaClient({
       errorFormat: 'pretty',
     });
   }
@@ -18,7 +38,7 @@ class DatabaseService {
     return DatabaseService.instance;
   }
 
-  public get prisma(): PrismaClient {
+  public get prisma(): ReturnType<typeof this.createPrismaClient> {
     return this._prisma;
   }
 
@@ -90,3 +110,27 @@ class DatabaseService {
 // 导出单例实例
 export const dbService = DatabaseService.getInstance();
 export default dbService;
+
+const convertBigIntToNumber = (obj: any): any => {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (typeof obj === 'bigint') {
+    return Number(obj);
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(convertBigIntToNumber);
+  }
+
+  if (typeof obj === 'object') {
+    const result: any = {};
+    for (const key in obj) {
+      result[key] = convertBigIntToNumber(obj[key]);
+    }
+    return result;
+  }
+
+  return obj;
+};
