@@ -1,7 +1,7 @@
 import { Context } from 'koa';
 
-import { messageService } from '../services';
-import { EngineMessageType } from '../types/message';
+import { messageService } from '../services/index.js';
+import { EngineMessageType } from '../types/message.js';
 
 export class MessageController {
   receiveMessage = async (ctx: Context) => {

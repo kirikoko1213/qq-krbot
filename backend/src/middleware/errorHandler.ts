@@ -1,6 +1,6 @@
 import { Context, Next } from 'koa';
-import { Logger } from '../utils/logger';
-import { error as errorResponse, getErrorResponse } from '../types/response';
+import { Logger } from '../utils/logger.js';
+import { error as errorResponse, getErrorResponse } from '../types/response.js';
 
 export async function errorHandler(ctx: Context, next: Next) {
   try {

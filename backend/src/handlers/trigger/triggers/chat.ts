@@ -1,8 +1,8 @@
-import { TriggerModel, TriggerParameter } from '../types';
-import { createOpenAIClient } from '../../../agent/openaiClient';
-import conf from '../../config/config';
-import { groupService } from '../../../services';
-import { MemoryContextStorage } from '../../../agent/contextStorage';
+import { TriggerModel, TriggerParameter } from '../types.js';
+import { createOpenAIClient } from '../../../agent/openaiClient.js';
+import conf from '../../config/config.js';
+import { groupService } from '../../../services/index.js';
+import { MemoryContextStorage } from '../../../agent/contextStorage.js';
 
 const storage = new MemoryContextStorage();
 const client = createOpenAIClient(

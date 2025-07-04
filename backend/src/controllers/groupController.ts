@@ -1,7 +1,7 @@
 import { Context } from 'koa';
-import { botEngine } from '../handlers/obt/onebot';
-import { groupService } from '../services';
-import { success, error } from '../types/response';
+import { botEngine } from '../handlers/obt/onebot.js';
+import { groupService } from '../services/index.js';
+import { success, error } from '../types/response.js';
 
 export class GroupController {
   // 获取群组列表

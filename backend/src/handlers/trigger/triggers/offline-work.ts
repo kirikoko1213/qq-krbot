@@ -1,4 +1,4 @@
-import { TriggerModel } from '../types';
+import { TriggerModel } from '../types.js';
 
 // 计算到下班时间的剩余时间
 function timeUntilOffWork(offWorkTime: string): string | null {

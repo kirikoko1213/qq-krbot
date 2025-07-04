@@ -1,4 +1,4 @@
-import { TriggerModel } from '../types';
+import { TriggerModel } from '../types.js';
 
 export const helpTrigger: TriggerModel = {
   condition: parameter => {

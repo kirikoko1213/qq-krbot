@@ -1,12 +1,12 @@
-import { botEngine } from '../handlers/obt/onebot';
-import { dynamicTriggers, fixedTriggers } from '../handlers/trigger';
-import { TriggerType } from '../handlers/trigger/types';
+import { botEngine } from '../handlers/obt/onebot.js';
+import { dynamicTriggers, fixedTriggers } from '../handlers/trigger/trigger.js';
+import { TriggerType } from '../handlers/trigger/types.js';
 import {
   EngineMessageType,
   MessageScene,
   WrapMessageType,
-} from '../types/message';
-import { Logger } from '../utils/logger';
+} from '../types/message.js';
+import { Logger } from '../utils/logger.js';
 
 export class MessageService {
   /**

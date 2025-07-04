@@ -1,8 +1,8 @@
 import Router from 'koa-router';
-import groupRoutes from './group';
-import messageRoutes from './message';
-import triggerRoutes from './trigger';
-import mcpRoutes from './mcp';
+import groupRoutes from './group.js';
+import messageRoutes from './message.js';
+import triggerRoutes from './trigger.js';
+import mcpRoutes from './mcp.js';
 
 const router = new Router({ prefix: '/api' });
 

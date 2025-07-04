@@ -1,6 +1,6 @@
 import { MessageRecord } from '@prisma/client';
-import { dbService } from '../services/database';
-import { Logger } from '../utils/logger';
+import { dbService } from '../services/database.js';
+import { Logger } from '../utils/logger.js';
 import { PrismaClient } from '@prisma/client';
 
 export interface RankResult {

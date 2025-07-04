@@ -1,5 +1,5 @@
 import Router from 'koa-router';
-import { GroupController } from '../controllers/groupController';
+import { GroupController } from '../controllers/groupController.js';
 
 const router = new Router();
 const groupController = new GroupController();

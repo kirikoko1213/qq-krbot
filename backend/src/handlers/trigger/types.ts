@@ -1,4 +1,4 @@
-import { MessageScene, WrapMessageType } from '../../types/message';
+import { MessageScene, WrapMessageType } from '../../types/message.js';
 
 export type TriggerParameter = {
   message: WrapMessageType;

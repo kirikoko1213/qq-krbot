@@ -1,6 +1,6 @@
-import conf from '../config/config';
-import request from './request';
-import { GroupInfo, GroupMemberInfo } from './types';
+import conf from '../config/config.js';
+import request from './request.js';
+import { GroupInfo, GroupMemberInfo } from './types.js';
 
 const baseUrl = await conf.get('QQ_ENGINE_URL');
 

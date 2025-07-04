@@ -1,6 +1,6 @@
-import { repositories } from '.';
-import { botEngine } from '../handlers/obt/onebot';
-import { GroupMemberInfo } from '../handlers/obt/types';
+import { repositories } from './index.js';
+import { botEngine } from '../handlers/obt/onebot.js';
+import { GroupMemberInfo } from '../handlers/obt/types.js';
 
 type GroupMember = GroupMemberInfo & {
   alias: string[];

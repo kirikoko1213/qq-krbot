@@ -1,5 +1,5 @@
 // MCP 工具集成模块
-export * from './weatherTool';
-export * from './qqTool';
-export * from './dnfGoldTool';
-export * from './toolRegistry';
+export * from './weatherTool.js';
+export * from './qqTool.js';
+export * from './dnfGoldTool.js';
+export * from './toolRegistry.js';

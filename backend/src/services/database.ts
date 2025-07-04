@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 
 class DatabaseService {
   private static instance: DatabaseService;

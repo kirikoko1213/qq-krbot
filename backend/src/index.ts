@@ -4,11 +4,11 @@ import bodyParser from 'koa-bodyparser';
 import cors from 'koa-cors';
 import logger from 'koa-logger';
 
-import { initTriggers } from './handlers/trigger/trigger';
-import { errorHandler } from './middleware/errorHandler';
-import router from './routes';
-import { dbService } from './services/database';
-import { Logger } from './utils/logger';
+import { initTriggers } from './handlers/trigger/trigger.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import router from './routes/index.js';
+import { dbService } from './services/database.js';
+import { Logger } from './utils/logger.js';
 
 // 加载环境变量
 dotenv.config();

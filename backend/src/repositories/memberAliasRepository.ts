@@ -1,6 +1,6 @@
 import { MemberAlias } from '@prisma/client';
-import { dbService } from '../services/database';
-import { Logger } from '../utils/logger';
+import { dbService } from '../services/database.js';
+import { Logger } from '../utils/logger.js';
 
 export class MemberAliasRepository {
   constructor(private prisma = dbService.prisma) {}

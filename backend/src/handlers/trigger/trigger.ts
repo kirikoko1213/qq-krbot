@@ -1,13 +1,13 @@
-import { MessageScene, WrapMessageType } from '../../types/message';
-import { ChatTrigger } from './triggers/chat';
-import { helpTrigger } from './triggers/help';
-import { offlineWorkTrigger } from './triggers/offline-work';
+import { MessageScene, WrapMessageType } from '../../types/message.js';
+import { ChatTrigger } from './triggers/chat.js';
+import { helpTrigger } from './triggers/help.js';
+import { offlineWorkTrigger } from './triggers/offline-work.js';
 import {
   CallbackFunc,
   ConditionFunc,
   TriggerModel,
   TriggerType,
-} from './types';
+} from './types.js';
 
 export const fixedTriggers: TriggerType[] = [];
 export const dynamicTriggers: TriggerType[] = [];
