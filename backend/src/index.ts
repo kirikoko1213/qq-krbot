@@ -10,6 +10,8 @@ import router from './routes/index.js';
 import { dbService } from './services/database.js';
 import { Logger } from './utils/logger.js';
 
+console.log(`pid: ${process.pid}`);
+
 // 加载环境变量
 dotenv.config();
 
