@@ -7,13 +7,29 @@ import logger from 'koa-logger';
 import { initTriggers } from './handlers/trigger/trigger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import router from './routes/index.js';
-import { dbService } from './services/database.js';
+import conf from '@/handlers/config/config.js';
+import { sutando } from 'sutando';
 import { Logger } from './utils/logger.js';
 
 console.log(`pid: ${process.pid}`);
 
 // 加载环境变量
 dotenv.config();
+
+// 配置 Sutando 连接
+sutando.addConnection({
+  client: 'mysql2',
+  connection: {
+    host: await conf.get('DB_HOST'),
+    port: await conf.get('DB_PORT'),
+    user: await conf.get('DB_USER'),
+    password: await conf.get('DB_PASSWORD'),
+    database: await conf.get('DB_NAME'),
+  },
+  debug: false, // 可以根据环境设置
+});
+
+sutando.connection();
 
 // 注册触发器
 initTriggers();
@@ -41,13 +57,6 @@ app.use(router.allowedMethods());
 // 启动服务器
 async function startServer() {
   try {
-    // 数据库已经在 DatabaseService 构造函数中同步初始化
-    // 只需要测试连接是否正常
-    const isConnected = await dbService.ping();
-    if (!isConnected) {
-      throw new Error('数据库连接测试失败');
-    }
-
     app.listen(port, () => {
       Logger.info(`服务器运行在端口 ${port}`);
       Logger.info(`环境: ${process.env.NODE_ENV || 'development'}`);
@@ -61,13 +70,11 @@ async function startServer() {
 // 优雅关闭
 process.on('SIGINT', async () => {
   Logger.info('正在关闭服务器...');
-  await dbService.disconnect();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   Logger.info('正在关闭服务器...');
-  await dbService.disconnect();
   process.exit(0);
 });
 

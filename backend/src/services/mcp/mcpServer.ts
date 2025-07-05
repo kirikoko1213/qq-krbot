@@ -7,7 +7,6 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { Logger } from '../../utils/logger.js';
 import { botEngine } from '../../handlers/obt/onebot.js';
-import { dbService } from '../database.js';
 import MessageRecordModel from '../../repositories/models/message-record.js';
 
 export class MCPServer {
