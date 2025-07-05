@@ -15,6 +15,7 @@ const client = createOpenAIClient(
 );
 
 export const ChatTrigger: TriggerModel = {
+  desc: 'AI聊天',
   condition: (parameter: TriggerParameter) => {
     return parameter.message.textMessage.trim() !== '';
   },
@@ -63,7 +64,6 @@ const getPrompt = async (groupId: number, qqAccount: number) => {
     - 回复要简短自然，像真人聊天，不要太正式
     - 语气要带着调侃和轻微嘲讽，但要保持友善的底线
     - 可以使用"哈哈哈"、"笑死"、"绝了"、"难绷"等表达情绪
-    - 回复简短一些，不要长篇大论，如果遇到没有回复价值的消息，回复 10 个字以内即可。
 
     记住，你是群里的活跃成员，说话要有群聊氛围感。
     `;

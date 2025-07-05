@@ -30,6 +30,7 @@ function timeUntilOffWork(offWorkTime: string): string | null {
 }
 
 export const offlineWorkTrigger: TriggerModel = {
+  desc: '下班倒计时',
   condition: parameter => {
     return (
       parameter.message.textMessage.trim() === '报时' ||

@@ -73,6 +73,7 @@ export class MessageService {
           wrapMessage.engineMessage.group_id,
           response
         );
+        Logger.info(`[触发器] <${trigger.desc}> `);
         return true;
       } else {
         return false;

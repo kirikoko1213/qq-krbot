@@ -1,6 +1,7 @@
 import { TriggerModel } from '../types.js';
 
 export const repeatChatTrigger: TriggerModel = {
+  desc: '重复消息',
   condition: parameter => {
     if (parameter.queue.length < 2) {
       return false;
@@ -11,6 +12,6 @@ export const repeatChatTrigger: TriggerModel = {
   },
   callback: async parameter => {
     const lastMessage = parameter.queue[parameter.queue.length - 1];
-    return lastMessage.textMessage;
+    return lastMessage.textMessage.trim();
   },
 };

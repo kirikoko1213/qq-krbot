@@ -1,6 +1,7 @@
 import { TriggerModel } from '../types.js';
 
 export const helpTrigger: TriggerModel = {
+  desc: '帮助',
   condition: parameter => {
     return (
       parameter.message.textMessage.trim() === '?' ||

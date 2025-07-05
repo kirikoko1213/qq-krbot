@@ -68,7 +68,12 @@ class DynamicTriggerService {
     const triggers = (await this.getDynamicTriggers()) || [];
 
     triggers.each((trigger: DynamicTriggerData) => {
-      regFunc(trigger.scene, getCondition(trigger), getCallback(trigger));
+      regFunc(
+        trigger.scene,
+        trigger.description,
+        getCondition(trigger),
+        getCallback(trigger)
+      );
     });
   }
 }

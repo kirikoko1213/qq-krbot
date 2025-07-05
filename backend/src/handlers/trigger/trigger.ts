@@ -17,6 +17,7 @@ export const dynamicTriggers: TriggerType[] = [];
 
 export type RegisterDynamicTriggerFunc = (
   scene: MessageScene,
+  desc: string,
   condition: ConditionFunc,
   callback: CallbackFunc
 ) => void;
@@ -28,11 +29,13 @@ const triggerHandler = {
         scene,
         condition: trigger.condition,
         callback: trigger.callback,
+        desc: trigger.desc,
       });
     });
   },
   addDynamicTrigger: (
     scene: MessageScene,
+    desc: string,
     condition: ConditionFunc,
     callback: CallbackFunc
   ) => {
@@ -40,6 +43,7 @@ const triggerHandler = {
       scene,
       condition,
       callback,
+      desc,
     });
   },
   resetDynamicTriggers: () => {
