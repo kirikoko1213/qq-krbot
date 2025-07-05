@@ -1,28 +1,21 @@
-import { AiRoleRepository } from './aiRoleRepository.js';
-import { DynamicTriggerRepository } from './dynamicTriggerRepository.js';
-import { MemberAliasRepository } from './memberAliasRepository.js';
-import { MessageCountRepository } from './messageCountRepository.js';
-import { MessageRecordRepository } from './messageRecordRepository.js';
-import { dbService } from '../services/database.js';
+import AiRoleModel from './models/ai-role.js';
+import MemberAliasModel from './models/member-alias.js';
+import MessageCountModel from './models/message-count.js';
+import MessageRecordModel from './models/message-record.js';
+import DynamicTriggerModel from './models/dynamic-trigger.js';
 
-// 使用单例的 Prisma 客户端实例
-const prisma = dbService.prisma;
-
-// 创建并导出所有 repository 实例
-export const aiRoleRepository = new AiRoleRepository(prisma);
-export const dynamicTriggerRepository = new DynamicTriggerRepository(prisma);
-export const memberAliasRepository = new MemberAliasRepository(prisma);
-export const messageCountRepository = new MessageCountRepository(prisma);
-export const messageRecordRepository = new MessageRecordRepository(prisma);
-
-// 导出 Prisma 客户端
-export { prisma };
-
-// 导出类型
-export type {
-  AiRoleRepository,
-  DynamicTriggerRepository,
-  MemberAliasRepository,
-  MessageCountRepository,
-  MessageRecordRepository,
+// 导出所有模型类
+export {
+  AiRoleModel,
+  MemberAliasModel,
+  MessageCountModel,
+  MessageRecordModel,
+  DynamicTriggerModel,
 };
+
+// 为了向后兼容，提供简化的导出别名
+export const aiRoleRepository = AiRoleModel;
+export const memberAliasRepository = MemberAliasModel;
+export const messageCountRepository = MessageCountModel;
+export const messageRecordRepository = MessageRecordModel;
+export const dynamicTriggerRepository = DynamicTriggerModel;

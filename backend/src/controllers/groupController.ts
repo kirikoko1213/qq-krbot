@@ -36,19 +36,14 @@ export class GroupController {
 
   // 演示其他响应方式
   async updateGroupMemberAlias(ctx: Context) {
-    try {
-      const { groupId, qqAccount, alias } = ctx.request.body as {
-        groupId: number;
-        qqAccount: number;
-        alias: string[];
-      };
+    const { groupId, qqAccount, alias } = ctx.request.body as {
+      groupId: number;
+      qqAccount: number;
+      alias: string[];
+    };
 
-      console.log(groupId, qqAccount, alias);
-      await groupService.updateGroupMemberAlias(groupId, qqAccount, alias);
+    await groupService.updateGroupMemberAlias(groupId, qqAccount, alias);
 
-      success(ctx, '群组更新成功');
-    } catch (err: any) {
-      error(ctx, `更新群组失败: ${err.message}`);
-    }
+    success(ctx, '群组更新成功');
   }
 }

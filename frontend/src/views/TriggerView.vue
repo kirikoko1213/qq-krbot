@@ -59,7 +59,7 @@
               <el-button 
                 size="small" 
                 :disabled="$index === 0" 
-                @click="moveUp(row.ID)"
+                @click="moveUp(row.id)"
                 title="上移"
               >
                 ↑
@@ -67,7 +67,7 @@
               <el-button 
                 size="small" 
                 :disabled="$index === triggerList.length - 1" 
-                @click="moveDown(row.ID)"
+                @click="moveDown(row.id)"
                 title="下移"
               >
                 ↓
@@ -76,7 +76,7 @@
             <el-button size="small" @click="editTrigger(row)">编辑</el-button>
             <el-popconfirm
               title="确定删除这个触发器吗？"
-              @confirm="deleteTriggerItem(row.ID)"
+              @confirm="deleteTriggerItem(row.id)"
             >
               <template #reference>
                 <el-button size="small" type="danger">删除</el-button>
@@ -115,7 +115,7 @@
                 placeholder="请选择消息类型"
                 style="width: 100%"
               >
-                <el-option label="群聊@我" value="at_me" />
+                <el-option label="群聊@我" value="atMe" />
                 <el-option label="私聊" value="pr" />
                 <el-option label="群聊" value="gr" />
               </el-select>
@@ -416,7 +416,7 @@ const onFunctionChange = (value: string) => {
 // 辅助函数
 const messageTypeLabel = (type: string) => {
   const labels: Record<string, string> = {
-    'at_me': '群聊@',
+    'atMe': '群聊@',
     'pr': '私聊',
     'gr': '群聊'
   }
@@ -425,7 +425,7 @@ const messageTypeLabel = (type: string) => {
 
 const messageTypeTagType = (type: string): 'success' | 'warning' | 'info' | 'primary' | 'danger' => {
   const types: Record<string, 'success' | 'warning' | 'info' | 'primary' | 'danger'> = {
-    'at_me': 'warning',
+    'atMe': 'warning',
     'pr': 'success',
     'gr': 'primary'
   }

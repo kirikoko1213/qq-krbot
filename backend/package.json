@@ -1,7 +1,7 @@
 {
   "name": "qq-krbot-backend",
   "version": "1.0.0",
-  "description": "QQ机器人后端服务 - TypeScript + Koa + MySQL + Prisma",
+  "description": "QQ机器人后端服务 - TypeScript + Koa + MySQL + Sutando",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -10,10 +10,6 @@
     "debug": "tsx --inspect=0.0.0.0:9229 src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio",
     "test": "jest",
     "format": "prettier --write \"src/**/*.{ts,js,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json}\"",
@@ -21,7 +17,6 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.2",
-    "@prisma/client": "^5.7.1",
     "axios": "^1.6.0",
     "candy-conf": "^1.0.2",
     "dayjs": "^1.11.13",
@@ -34,6 +29,7 @@
     "koa-router": "^12.0.0",
     "mysql2": "^3.14.1",
     "openai": "^5.8.2",
+    "sutando": "^1.7.2",
     "winston": "^3.11.0",
     "zod": "^3.25.67"
   },
@@ -49,7 +45,6 @@
     "jest": "^29.7.0",
     "nodemon": "^3.0.2",
     "prettier": "^3.6.2",
-    "prisma": "^5.7.1",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
     "tsx": "^4.20.3",
@@ -62,7 +57,7 @@
     "koa",
     "typescript",
     "mysql",
-    "prisma",
+    "sutando",
     "mcp",
     "qq-bot"
   ]

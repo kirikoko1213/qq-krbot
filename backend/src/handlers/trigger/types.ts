@@ -2,6 +2,7 @@ import { MessageScene, WrapMessageType } from '../../types/message.js';
 
 export type TriggerParameter = {
   message: WrapMessageType;
+  queue: WrapMessageType[];
 };
 
 export type ConditionFunc = (parameter: TriggerParameter) => boolean;

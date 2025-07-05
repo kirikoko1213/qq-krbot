@@ -1,6 +1,6 @@
 import { MCPTool, MCPToolDefinition, QQGroupRankToolArgs } from './types.js';
 import { Logger } from '../../utils/logger.js';
-import { messageRecordRepository } from '../../repositories/index.js';
+import { MessageRecordModel } from '../../repositories/index.js';
 
 /**
  * QQ群消息排行榜工具定义
@@ -26,7 +26,7 @@ export const qqGroupRankToolDefinition: MCPToolDefinition = {
 async function getQQGroupMessageRank(groupId: string): Promise<string> {
   try {
     // 获取今日消息排行（前5名）
-    const rankArray = await messageRecordRepository.getRankWithGroupAndToday(
+    const rankArray = await MessageRecordModel.getRankWithGroupAndToday(
       groupId,
       5
     );
@@ -38,7 +38,7 @@ async function getQQGroupMessageRank(groupId: string): Promise<string> {
     // 构建排行榜字符串
     let result = `📊 群 ${groupId} 今日发言排行榜：\n\n`;
 
-    rankArray.forEach((record, index) => {
+    rankArray.forEach((record: any, index: number) => {
       const medal =
         index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '📍';
       result += `${medal} 第${index + 1}名: ${record.memberAlias || record.memberId}\n`;

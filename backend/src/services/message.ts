@@ -1,6 +1,7 @@
 import { botEngine } from '../handlers/obt/onebot.js';
 import { dynamicTriggers, fixedTriggers } from '../handlers/trigger/trigger.js';
 import { TriggerType } from '../handlers/trigger/types.js';
+import MessageRecordModel from '../repositories/models/message-record.js';
 import {
   EngineMessageType,
   MessageScene,
@@ -10,19 +11,64 @@ import { Logger } from '../utils/logger.js';
 
 export class MessageService {
   /**
+   * 消息队列
+   */
+  groupMessageQueue: Record<number, WrapMessageType[]> = [];
+  /**
+   * 添加消息到队列
+   * @param message 包装后的消息
+   */
+  async addMessageToQueue(message: WrapMessageType) {
+    const groupId = message.engineMessage.group_id;
+    let queue = this.groupMessageQueue[groupId];
+    if (!queue) {
+      queue = [];
+    }
+    if (queue.length > 30) {
+      queue.shift();
+    }
+    queue.push(message);
+    this.groupMessageQueue[groupId] = queue;
+  }
+  /**
+   * 保存消息
+   * @param wrapMessage 包装后的消息
+   */
+  async saveMessage(wrapMessage: WrapMessageType) {
+    MessageRecordModel.createRecord({
+      qqAccount: wrapMessage.engineMessage.user_id,
+      qqNickname: wrapMessage.engineMessage.sender.nickname,
+      groupId: wrapMessage.engineMessage.group_id,
+      groupName: '',
+      cqMessage: wrapMessage.engineMessage.raw_message,
+      textMessage: wrapMessage.textMessage,
+      engineMessage: JSON.stringify(wrapMessage.engineMessage),
+      messageType: wrapMessage.engineMessage.message_type,
+    }).catch(err => {
+      Logger.error(`保存消息失败: ${err}`);
+    });
+  }
+  /**
    * 处理接收到的消息
    * @param message 接收到的消息
    */
   handleReceiveMessage = async (message: EngineMessageType) => {
     Logger.info(`收到消息: ${message.raw_message}`);
     const wrapMessage = this.convertToWrapMessage(message);
+    this.addMessageToQueue(wrapMessage);
+    // 保存消息
+    this.saveMessage(wrapMessage);
 
     const handle = async (trigger: TriggerType): Promise<boolean> => {
+      const queue = this.groupMessageQueue[wrapMessage.engineMessage.group_id];
       if (
         trigger.scene === wrapMessage.scene &&
-        trigger.condition({ message: wrapMessage })
+        trigger.condition({ message: wrapMessage, queue })
       ) {
-        const response = await trigger.callback({ message: wrapMessage });
+        const response = await trigger.callback({
+          message: wrapMessage,
+          queue,
+        });
         await botEngine.sendGroupMessage(
           wrapMessage.engineMessage.group_id,
           response
@@ -32,14 +78,14 @@ export class MessageService {
         return false;
       }
     };
-    for (const trigger of fixedTriggers) {
-      if (await handle(trigger)) {
-        break;
-      }
-    }
     for (const trigger of dynamicTriggers) {
       if (await handle(trigger)) {
-        break;
+        return;
+      }
+    }
+    for (const trigger of fixedTriggers) {
+      if (await handle(trigger)) {
+        return;
       }
     }
   };

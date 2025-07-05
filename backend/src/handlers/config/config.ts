@@ -30,7 +30,7 @@ const createDBHandler = async (localHandler: Handler): Promise<Handler> => {
     DB_NAME,
     'easy_config_items'
   );
-  return initialize(storage);
+  return initialize(storage, 'main');
 };
 
 const localHandler: Handler = createLocalHandler();

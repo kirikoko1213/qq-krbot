@@ -1,34 +1,15 @@
-import { PrismaClient } from '@prisma/client';
+import { sutando } from 'sutando';
 import { Logger } from '../utils/logger.js';
+import conf from '@/handlers/config/config.js';
 
 class DatabaseService {
   private static instance: DatabaseService;
-  private _prisma: ReturnType<typeof this.createPrismaClient>;
+  private _connection: any;
+  private _initialized: boolean = false;
 
   private constructor() {
-    this._prisma = this.createPrismaClient();
-  }
-
-  private createPrismaClient() {
-    // return new PrismaClient({
-    //   errorFormat: 'pretty',
-    // }).$extends({
-    //   query: {
-    //     $allModels: {
-    //       // 这会拦截所有模型的所有操作
-    //       $allOperations: async ({ model, operation, args, query }) => {
-    //         // 执行原始查询
-    //         const result = await query(args);
-
-    //         // 转换结果中的所有 BigInt
-    //         return convertBigIntToNumber(result);
-    //       },
-    //     },
-    //   },
-    // });
-    return new PrismaClient({
-      errorFormat: 'pretty',
-    });
+    // 同步初始化 Sutando 连接（使用环境变量）
+    this.initializeSync();
   }
 
   public static getInstance(): DatabaseService {
@@ -38,14 +19,57 @@ class DatabaseService {
     return DatabaseService.instance;
   }
 
-  public get prisma(): ReturnType<typeof this.createPrismaClient> {
-    return this._prisma;
+  // 同步初始化 Sutando 连接（使用环境变量）
+  private async initializeSync(): Promise<void> {
+    try {
+      // 配置 Sutando 连接
+      sutando.addConnection(
+        {
+          client: 'mysql2',
+          connection: {
+            host: await conf.get('DEFAULT.DB_HOST'),
+            port: await conf.get('DEFAULT.DB_PORT'),
+            user: await conf.get('DEFAULT.DB_USER'),
+            password: await conf.get('DEFAULT.DB_PASSWORD'),
+            database: await conf.get('DEFAULT.DB_NAME'),
+          },
+          debug: false, // 可以根据环境设置
+        },
+        'default'
+      );
+
+      this._connection = sutando.connection();
+      this._initialized = true;
+      Logger.info('Sutando database connection initialized successfully');
+    } catch (error) {
+      Logger.error('Failed to initialize database connection:', error);
+      throw error;
+    }
+  }
+
+  // 异步初始化方法（保持向后兼容）
+  public async initialize(): Promise<void> {
+    // 现在同步初始化已经在构造函数中完成
+    if (this._initialized) {
+      return;
+    }
+    throw new Error('Database initialization failed in constructor');
+  }
+
+  // 获取连接
+  public get connection() {
+    if (!this._initialized) {
+      throw new Error('Database not initialized. Call initialize() first.');
+    }
+    return this._connection;
   }
 
   // 连接数据库
   public async connect(): Promise<void> {
     try {
-      await this._prisma.$connect();
+      if (!this._initialized) {
+        throw new Error('Database not initialized. Call initialize() first.');
+      }
       Logger.info('Database connected successfully');
     } catch (error) {
       Logger.error('Failed to connect to database:', error);
@@ -56,8 +80,11 @@ class DatabaseService {
   // 断开数据库连接
   public async disconnect(): Promise<void> {
     try {
-      await this._prisma.$disconnect();
-      Logger.info('Database disconnected successfully');
+      if (this._connection) {
+        await this._connection.destroy();
+        this._initialized = false;
+        Logger.info('Database disconnected successfully');
+      }
     } catch (error) {
       Logger.error('Failed to disconnect from database:', error);
       throw error;
@@ -67,7 +94,11 @@ class DatabaseService {
   // 检查数据库连接
   public async ping(): Promise<boolean> {
     try {
-      await this._prisma.$queryRaw`SELECT 1`;
+      if (!this._initialized) {
+        throw new Error('Database not initialized');
+      }
+      // 使用 Sutando 的方式检查连接
+      await this._connection.raw('SELECT 1');
       return true;
     } catch (error) {
       Logger.error('Database ping failed:', error);
@@ -75,62 +106,43 @@ class DatabaseService {
     }
   }
 
-  // 事务执行器，对应Go代码中的Transaction功能
-  public async transaction<T>(
-    callback: (prisma: any) => Promise<T>
-  ): Promise<T> {
-    return await this._prisma.$transaction(callback);
+  // 事务执行器
+  public async transaction<T>(callback: (trx: any) => Promise<T>): Promise<T> {
+    if (!this._initialized) {
+      throw new Error('Database not initialized');
+    }
+    return await this._connection.transaction(callback);
   }
 
-  // 批量操作，对应Go代码中的GetBatchDB功能
-  public async batchCreate<T>(
-    model: any,
-    data: T[],
+  // 批量操作
+  public async batchInsert(
+    tableName: string,
+    data: any[],
     batchSize: number = 1000
   ): Promise<void> {
+    if (!this._initialized) {
+      throw new Error('Database not initialized');
+    }
+
     const batches = [];
     for (let i = 0; i < data.length; i += batchSize) {
       batches.push(data.slice(i, i + batchSize));
     }
 
     for (const batch of batches) {
-      await model.createMany({
-        data: batch,
-        skipDuplicates: true,
-      });
+      await this._connection.table(tableName).insert(batch);
     }
   }
 
-  // 检查是否为记录未找到错误
-  public isNotFound(error: any): boolean {
-    return error?.code === 'P2025';
+  // 执行原始 SQL
+  public async raw(query: string, bindings?: any[]): Promise<any> {
+    if (!this._initialized) {
+      throw new Error('Database not initialized');
+    }
+    return await this._connection.raw(query, bindings);
   }
 }
 
 // 导出单例实例
 export const dbService = DatabaseService.getInstance();
 export default dbService;
-
-const convertBigIntToNumber = (obj: any): any => {
-  if (obj === null || obj === undefined) {
-    return obj;
-  }
-
-  if (typeof obj === 'bigint') {
-    return Number(obj);
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map(convertBigIntToNumber);
-  }
-
-  if (typeof obj === 'object') {
-    const result: any = {};
-    for (const key in obj) {
-      result[key] = convertBigIntToNumber(obj[key]);
-    }
-    return result;
-  }
-
-  return obj;
-};

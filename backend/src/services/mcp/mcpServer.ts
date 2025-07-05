@@ -8,6 +8,7 @@ import {
 import { Logger } from '../../utils/logger.js';
 import { botEngine } from '../../handlers/obt/onebot.js';
 import { dbService } from '../database.js';
+import MessageRecordModel from '../../repositories/models/message-record.js';
 
 export class MCPServer {
   private server: Server;
@@ -273,24 +274,37 @@ export class MCPServer {
     const { groupId, limit = 20, offset = 0 } = args;
 
     try {
-      const prisma = dbService.prisma;
-      const messages = await prisma.messageRecord.findMany({
-        where: groupId ? { groupId: BigInt(groupId) } : {},
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip: offset,
-      });
+      let messages;
+      if (groupId) {
+        messages = await MessageRecordModel.getGroupMessages(
+          parseInt(groupId),
+          limit,
+          offset
+        );
+      } else {
+        // 获取所有消息记录
+        const result = await MessageRecordModel.query()
+          .whereNull('deleted_at')
+          .orderBy('created_at', 'desc')
+          .limit(limit)
+          .offset(offset)
+          .get();
+        messages = result.all();
+      }
 
-      const formattedMessages = messages.map(msg => ({
-        id: msg.id.toString(),
-        groupId: msg.groupId.toString(),
-        qqAccount: msg.qqAccount.toString(),
-        qqNickname: msg.qqNickname,
-        groupName: msg.groupName,
-        message: msg.message,
-        messageType: msg.messageType,
-        createdAt: msg.createdAt,
-      }));
+      const formattedMessages = messages.map((msg: MessageRecordModel) => {
+        const data = msg.getData();
+        return {
+          id: data.id.toString(),
+          groupId: data.groupId.toString(),
+          qqAccount: data.qqAccount.toString(),
+          qqNickname: data.qqNickname,
+          groupName: data.groupName,
+          message: data.textMessage!,
+          messageType: data.messageType,
+          createdAt: data.createdAt,
+        };
+      });
 
       return {
         content: [

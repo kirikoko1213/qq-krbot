@@ -1,4 +1,4 @@
-import { repositories } from './index.js';
+import { MemberAliasModel } from '../repositories/index.js';
 import { botEngine } from '../handlers/obt/onebot.js';
 import { GroupMemberInfo } from '../handlers/obt/types.js';
 
@@ -13,11 +13,11 @@ class GroupService {
     const members = await botEngine.getGroupMemberList(groupId);
 
     // 获取数据库里的群成员别名
-    const memberAliases =
-      await repositories.memberAliasRepository.findAliasByGroupId(groupId);
+    const memberAliases = await MemberAliasModel.findByGroupId(groupId);
     const memberAliasesMap = new Map<number, string[]>(
-      memberAliases.map((alias: any) => {
-        return [Number(alias.qqAccount), alias.alias as string[]];
+      memberAliases.map((alias: MemberAliasModel) => {
+        const data = alias.getData();
+        return [Number(data.qqAccount), JSON.parse(data.alias as string)];
       })
     );
 
@@ -44,22 +44,17 @@ class GroupService {
     qqAccount: number,
     alias: string[]
   ) => {
-    await repositories.memberAliasRepository.updateAlias(
-      BigInt(groupId),
-      BigInt(qqAccount),
-      alias
-    );
+    await MemberAliasModel.updateAlias(groupId, qqAccount, alias);
   };
 
   getMemberAlias = async (
     groupId: number,
     qqAccount: number
   ): Promise<string[]> => {
-    const alias =
-      await repositories.memberAliasRepository.findAliasByGroupIdAndQQAccount(
-        BigInt(groupId),
-        BigInt(qqAccount)
-      );
+    const alias = await MemberAliasModel.findAliasByGroupIdAndQQAccount(
+      groupId,
+      qqAccount
+    );
     if (alias.length === 0) {
       const member = await botEngine.getGroupMemberInfo(groupId, qqAccount);
       if (member) {

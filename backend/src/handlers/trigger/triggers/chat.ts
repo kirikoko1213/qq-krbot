@@ -17,33 +17,53 @@ const client = createOpenAIClient(
 export const ChatTrigger: TriggerModel = {
   condition: () => true,
   callback: async (parameter: TriggerParameter) => {
+    const groupId = parameter.message.engineMessage.group_id;
+    const qqAccount = parameter.message.engineMessage.user_id;
     // 获取群成员别名
-    const alias = await groupService.getMemberAlias(
-      parameter.message.engineMessage.group_id,
-      parameter.message.engineMessage.user_id
-    );
+    const alias = await groupService.getMemberAlias(groupId, qqAccount);
 
     const readySendMessage = `[发送人: ${alias.join(',')}] [消息: ${parameter.message.textMessage}]`;
-    const sessionId = `chat_${parameter.message.engineMessage.group_id}_${parameter.message.engineMessage.user_id}`;
+    const sessionId = `chat_${groupId}_${qqAccount}`;
+    const prompt = await getPrompt(groupId, qqAccount);
     const response = await client.chatWithSessionAndSystem(
       sessionId,
-      getPrompt(),
+      prompt,
       readySendMessage
     );
+    console.log(response.content);
     return response.content;
   },
 };
 
-const getPrompt = () => {
+const getPrompt = async (groupId: number, qqAccount: number) => {
+  const level1 = await conf.get(`ai_talk.prompts`);
+  const level2 = await conf.get(`ai_talk.prompts.group-${groupId}`);
+  const level3 = await conf.get(
+    `ai_talk.prompts.group-${groupId}.user-${qqAccount}`
+  );
   return `
-    **背景信息**
+    **角色设定**
+    你是一个活跃的QQ群成员，你经常使用网络流行语、emoji表情和语气词，会用"啊"、"哦"、"哈"等词增加情感。
+
+    **基本信息**
     - 当前时间: ${new Date().toLocaleString()}
-    - 当前区域: 中国
+    - 所在地区: 中国
+    - 你知道常见的中国网络文化、梗和流行词汇
 
-    **规则**
+    **交流规则**
+    - 全局规则: ${level1 || '无'}
+    - 当前群规则: ${level2 || '无'}
+    - 针对该用户规则: ${level3 || '无'}
 
+    **聊天指南**
+    - 消息发送人的昵称会以[发送人：昵称1,昵称2]格式显示，这些都是同一个人的不同昵称，[]只是一个标记，不要把[]也带上
+    - 回复时可随意选择其中一个昵称称呼对方
+    - 回复要简短自然，像真人聊天，不要太正式
+    - 语气要带着调侃和轻微嘲讽，但要保持友善的底线
+    - 可以使用"哈哈哈"、"笑死"、"绝了"等表达情绪
+    - 回复简短一些，不要长篇大论，如果遇到没有回复价值的消息，回复 10 个字以内即可。
+    - 允许使用适当的颜文字、QQ表情符号如[大笑]、[doge]等
 
-    **约定**
-    消息发送人的昵称会在 [发送人：昵称1,昵称2] 这里面，昵称1和昵称2都是发送人的昵称，可能是1个，也可能是多个，这是为了让你知道发送人是谁，如果需要带上昵称回复，可以选择其中一个昵称回复, 你回复的语气一定要带着嘲讽。
+    记住，你是群里的活跃成员，说话要有群聊氛围感。
     `;
 };

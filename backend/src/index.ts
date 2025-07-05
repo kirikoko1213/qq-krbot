@@ -21,8 +21,7 @@ initTriggers();
 const app = new Koa();
 const port = process.env.PORT || 3000;
 
-// 导出prisma实例以保持向后兼容性
-export const prisma = dbService.prisma;
+// 数据库服务现在使用 Sutando 而不是 Prisma
 
 // 中间件（顺序很重要）
 app.use(errorHandler); // 错误处理（最先）
@@ -42,10 +41,8 @@ app.use(router.allowedMethods());
 // 启动服务器
 async function startServer() {
   try {
-    // 使用我们创建的数据库服务连接数据库
-    await dbService.connect();
-
-    // 测试数据库连接
+    // 数据库已经在 DatabaseService 构造函数中同步初始化
+    // 只需要测试连接是否正常
     const isConnected = await dbService.ping();
     if (!isConnected) {
       throw new Error('数据库连接测试失败');
