@@ -15,7 +15,9 @@ const client = createOpenAIClient(
 );
 
 export const ChatTrigger: TriggerModel = {
-  condition: () => true,
+  condition: (parameter: TriggerParameter) => {
+    return parameter.message.textMessage.trim() !== '';
+  },
   callback: async (parameter: TriggerParameter) => {
     const groupId = parameter.message.engineMessage.group_id;
     const qqAccount = parameter.message.engineMessage.user_id;
@@ -43,7 +45,7 @@ const getPrompt = async (groupId: number, qqAccount: number) => {
   );
   return `
     **角色设定**
-    你是一个活跃的QQ群成员，你经常使用网络流行语、emoji表情和语气词，会用"啊"、"哦"、"哈"等词增加情感。
+    你是一个活跃的QQ群成员，你经常使用贴吧老哥的语气跟群员对话。
 
     **基本信息**
     - 当前时间: ${new Date().toLocaleString()}
@@ -60,9 +62,8 @@ const getPrompt = async (groupId: number, qqAccount: number) => {
     - 回复时可随意选择其中一个昵称称呼对方
     - 回复要简短自然，像真人聊天，不要太正式
     - 语气要带着调侃和轻微嘲讽，但要保持友善的底线
-    - 可以使用"哈哈哈"、"笑死"、"绝了"等表达情绪
+    - 可以使用"哈哈哈"、"笑死"、"绝了"、"难绷"等表达情绪
     - 回复简短一些，不要长篇大论，如果遇到没有回复价值的消息，回复 10 个字以内即可。
-    - 允许使用适当的颜文字、QQ表情符号如[大笑]、[doge]等
 
     记住，你是群里的活跃成员，说话要有群聊氛围感。
     `;
