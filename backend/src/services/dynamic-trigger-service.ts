@@ -1,5 +1,5 @@
 import { RegisterDynamicTriggerFunc } from '../handlers/trigger/trigger.js';
-import { TriggerParameter } from '../handlers/trigger/types.js';
+import { CallbackFunc, TriggerParameter } from '../handlers/trigger/types.js';
 import DynamicTriggerModel, {
   DynamicTriggerData,
 } from '../repositories/models/dynamic-trigger.js';
@@ -25,13 +25,27 @@ const getCondition = (trigger: DynamicTriggerData) => {
   return () => false;
 };
 
-const getCallback = (trigger: DynamicTriggerData) => {
+const getCallback = (trigger: DynamicTriggerData): CallbackFunc => {
   if (trigger.triggerContentType === 'text') {
     return () => {
-      return Promise.resolve(trigger.triggerContent);
+      return Promise.resolve({
+        data: trigger.triggerContent,
+        type: 'text',
+      });
+    };
+  } else if (trigger.triggerContentType === 'handler') {
+    return () => {
+      return Promise.resolve({
+        data: trigger.triggerContent,
+        type: 'text',
+      });
     };
   }
-  return () => Promise.resolve('');
+  return () =>
+    Promise.resolve({
+      data: '',
+      type: 'text',
+    });
 };
 
 class DynamicTriggerService {

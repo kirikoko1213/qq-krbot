@@ -12,6 +12,9 @@ export const repeatChatTrigger: TriggerModel = {
   },
   callback: async parameter => {
     const lastMessage = parameter.queue[parameter.queue.length - 1];
-    return lastMessage.textMessage.trim();
+    return {
+      data: lastMessage.textMessage.trim(),
+      type: 'text',
+    };
   },
 };

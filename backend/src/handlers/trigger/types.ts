@@ -5,8 +5,15 @@ export type TriggerParameter = {
   queue: WrapMessageType[];
 };
 
+export type CallbackResult = {
+  data: any;
+  type: 'text' | 'image';
+};
+
 export type ConditionFunc = (parameter: TriggerParameter) => boolean;
-export type CallbackFunc = (parameter: TriggerParameter) => Promise<string>;
+export type CallbackFunc = (
+  parameter: TriggerParameter
+) => Promise<CallbackResult>;
 
 export type TriggerType = {
   scene: MessageScene;

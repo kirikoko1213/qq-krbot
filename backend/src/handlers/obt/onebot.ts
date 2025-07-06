@@ -17,6 +17,22 @@ export const botEngine = {
     });
   },
   /**
+   * 发送群图片
+   * @param groupId 群组ID
+   * @param images 图片路径
+   */
+  sendGroupImage: async (groupId: number, images: string[]) => {
+    await request.post(`${baseUrl}/send_group_msg`, {
+      group_id: groupId,
+      message: images.map(image => ({
+        type: 'image',
+        data: {
+          file: `file://${image}`,
+        },
+      })),
+    });
+  },
+  /**
    * 发送私聊消息
    * @param userId 用户ID
    * @param message 消息

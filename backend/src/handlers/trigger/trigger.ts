@@ -1,16 +1,16 @@
-import { MessageScene, WrapMessageType } from '../../types/message.js';
+import { dynamicTriggerService } from '../../services/dynamic-trigger-service.js';
+import { MessageScene } from '../../types/message.js';
 import { ChatTrigger } from './triggers/chat.js';
+import { EroImageTrigger } from './triggers/ero-image.js';
 import { helpTrigger } from './triggers/help.js';
 import { offlineWorkTrigger } from './triggers/offline-work.js';
+import { repeatChatTrigger } from './triggers/repeat_chat.js';
 import {
   CallbackFunc,
   ConditionFunc,
   TriggerModel,
   TriggerType,
 } from './types.js';
-import { dynamicTriggerService } from '../../services/dynamic-trigger-service.js';
-import { DynamicTriggerData } from '../../repositories/models/dynamic-trigger.js';
-import { repeatChatTrigger } from './triggers/repeat_chat.js';
 
 export const fixedTriggers: TriggerType[] = [];
 export const dynamicTriggers: TriggerType[] = [];
@@ -54,10 +54,11 @@ const triggerHandler = {
 export async function initTriggers() {
   triggerHandler.addTrigger(['atMe'], helpTrigger);
   triggerHandler.addTrigger(['atMe', 'atAll', 'gr'], offlineWorkTrigger);
-  triggerHandler.addTrigger(['atOther', 'gr'], repeatChatTrigger);
   triggerHandler.addTrigger(['atMe'], ChatTrigger);
+  triggerHandler.addTrigger(['atMe', 'gr'], EroImageTrigger);
   // 添加动态触发器
   dynamicTriggerService.registerDynamicTrigger(
     triggerHandler.addDynamicTrigger
   );
+  triggerHandler.addTrigger(['atOther', 'gr'], repeatChatTrigger);
 }

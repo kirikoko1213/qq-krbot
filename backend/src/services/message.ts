@@ -69,10 +69,19 @@ export class MessageService {
           message: wrapMessage,
           queue,
         });
-        await botEngine.sendGroupMessage(
-          wrapMessage.engineMessage.group_id,
-          response
-        );
+        if (response.type === 'text') {
+          await botEngine.sendGroupMessage(
+            wrapMessage.engineMessage.group_id,
+            response.data
+          );
+        } else if (response.type === 'image') {
+          if (Array.isArray(response.data)) {
+            await botEngine.sendGroupImage(
+              wrapMessage.engineMessage.group_id,
+              response.data
+            );
+          }
+        }
         Logger.info(`[触发器] <${trigger.desc}> `);
         return true;
       } else {
@@ -124,7 +133,7 @@ export class MessageService {
    * @returns 消息的场景
    */
   getMessageScene = (message: EngineMessageType): MessageScene => {
-    if (message.raw_message.includes('[CQ:at,')) {
+    if (message.raw_message?.includes('[CQ:at,')) {
       const qqAccount = this.extractQQ(message.raw_message);
       if (qqAccount === message.self_id) {
         return 'atMe';

@@ -33,8 +33,10 @@ export const ChatTrigger: TriggerModel = {
       prompt,
       readySendMessage
     );
-    console.log(response.content);
-    return response.content;
+    return {
+      data: response.content,
+      type: 'text',
+    };
   },
 };
 

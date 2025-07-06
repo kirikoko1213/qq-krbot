@@ -42,7 +42,10 @@ export const offlineWorkTrigger: TriggerModel = {
 
     // 检查是否已经超过下午6点
     if (now.getHours() >= 18) {
-      return '不会有人这个时间还在上班吧?';
+      return {
+        data: '不会有人这个时间还在上班吧?',
+        type: 'text',
+      };
     }
 
     let message = '';
@@ -67,6 +70,9 @@ export const offlineWorkTrigger: TriggerModel = {
       message = message.substring(1);
     }
 
-    return message;
+    return {
+      data: message,
+      type: 'text',
+    };
   },
 };
