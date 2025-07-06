@@ -97,7 +97,10 @@ export const EroImageTrigger: TriggerModel = {
   condition: (parameter: TriggerParameter) => {
     return (
       parameter.message.textMessage.includes('来点涩图') ||
-      parameter.message.textMessage.includes('来点色图')
+      parameter.message.textMessage.includes('来点色图') ||
+      parameter.message.textMessage.includes('不够涩') ||
+      parameter.message.textMessage.includes('再来点') ||
+      parameter.message.textMessage.includes('不够色')
     );
   },
   callback: async (parameter: TriggerParameter) => {
