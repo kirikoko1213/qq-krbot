@@ -54,11 +54,11 @@ const triggerHandler = {
 export async function initTriggers() {
   triggerHandler.addTrigger(['atMe'], helpTrigger);
   triggerHandler.addTrigger(['atMe', 'atAll', 'gr'], offlineWorkTrigger);
-  triggerHandler.addTrigger(['atMe'], ChatTrigger);
   triggerHandler.addTrigger(['atMe', 'gr'], EroImageTrigger);
+  triggerHandler.addTrigger(['atOther', 'gr'], repeatChatTrigger);
+  triggerHandler.addTrigger(['atMe'], ChatTrigger);
   // 添加动态触发器
   dynamicTriggerService.registerDynamicTrigger(
     triggerHandler.addDynamicTrigger
   );
-  triggerHandler.addTrigger(['atOther', 'gr'], repeatChatTrigger);
 }

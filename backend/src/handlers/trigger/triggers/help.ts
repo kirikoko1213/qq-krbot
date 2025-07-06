@@ -1,3 +1,4 @@
+import conf from '@/handlers/config/config.js';
 import { TriggerModel } from '../types.js';
 
 export const helpTrigger: TriggerModel = {
@@ -11,16 +12,7 @@ export const helpTrigger: TriggerModel = {
   },
   callback: async () => {
     return {
-      data: `🌸使用方法🌸
-        1. 报时: @我并发送 报时，显示下班时间
-        2. 设定: 设置以当前群组和发送者为单位的AI角色 @我并发送 设定, 你是一个xxxxx
-        3. 群角色设定: 设置以群组为单位的AI角色, @我并发送 群角色设定 你是一个xxxxx
-        4. AI回复: @我输入任意内容即可与AI对话
-        5. 群吹水排名: @我并发送 排名
-        6. 人格分析: @我并发送 人格分析
-        7. 假期倒计时: @我并发送 假期
-        ......
-        开源地址: https://github.com/kirikoko1213/qq-krbot`,
+      data: await conf.get('help.message'),
       type: 'text',
     };
   },
