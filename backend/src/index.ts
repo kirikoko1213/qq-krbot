@@ -35,7 +35,7 @@ sutando.connection();
 initTriggers();
 
 const app = new Koa();
-const port = process.env.PORT || 3000;
+const port = (await conf.get('PORT')) || 3000;
 
 // 数据库服务现在使用 Sutando 而不是 Prisma
 
