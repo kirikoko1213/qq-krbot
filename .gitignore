@@ -8,3 +8,9 @@ config.properties
 .cursor
 qq-krbot
 log.txt
+build_and_push.sh
+.dockerignore
+supervisord.conf
+Dockerfile
+docker-compose.yml
+run_container.sh
