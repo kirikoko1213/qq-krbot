@@ -4,7 +4,10 @@ import bodyParser from 'koa-bodyparser';
 import cors from 'koa-cors';
 import logger from 'koa-logger';
 
-import { initTriggers } from './handlers/trigger/trigger.js';
+import {
+  initTriggerProcessor,
+  initTriggers,
+} from './handlers/trigger/trigger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import router from './routes/index.js';
 import conf from '@/handlers/config/config.js';
@@ -33,6 +36,7 @@ sutando.connection();
 
 // 注册触发器
 initTriggers();
+await initTriggerProcessor();
 
 const app = new Koa();
 const port = (await conf.get('PORT')) || 3000;

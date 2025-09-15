@@ -3,6 +3,7 @@ import { MessageScene } from '../../types/message.js';
 import { ChatTrigger } from './triggers/chat.js';
 import { EroImageTrigger } from './triggers/ero-image.js';
 import { helpTrigger } from './triggers/help.js';
+import { holidayTrigger } from './triggers/holiday.js';
 import { offlineWorkTrigger } from './triggers/offline-work.js';
 import { repeatChatTrigger } from './triggers/repeat_chat.js';
 import {
@@ -54,6 +55,7 @@ const triggerHandler = {
 export async function initTriggers() {
   triggerHandler.addTrigger(['atMe'], helpTrigger);
   triggerHandler.addTrigger(['atMe', 'atAll', 'gr'], offlineWorkTrigger);
+  triggerHandler.addTrigger(['atMe', 'atAll', 'gr'], holidayTrigger);
   triggerHandler.addTrigger(['atMe', 'gr'], EroImageTrigger);
   triggerHandler.addTrigger(['atOther', 'gr'], repeatChatTrigger);
   triggerHandler.addTrigger(['atMe'], ChatTrigger);
@@ -61,4 +63,12 @@ export async function initTriggers() {
   dynamicTriggerService.registerDynamicTrigger(
     triggerHandler.addDynamicTrigger
   );
+}
+
+const triggerProcessor: Record<string, () => Promise<string>> = {};
+
+export async function initTriggerProcessor() {
+  triggerProcessor['holiday'] = async () => {
+    return '假期快乐！';
+  };
 }
