@@ -32,8 +32,14 @@ function calculateWorkDays(startDate: Date, endDate: Date): number {
   let workDays = 0;
   const currentDate = new Date(startDate);
 
-  // 从明天开始计算到目标日期前一天
-  currentDate.setDate(currentDate.getDate() + 1);
+  // 根据当前时间决定从今天还是明天开始计算
+  // 如果当前时间是下午5点以后，从明天开始计算；否则从今天开始计算
+  const currentHour = startDate.getHours();
+  if (currentHour >= 17) {
+    // 下午5点以后，从明天开始计算
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  // 如果是下午5点之前，直接从今天开始计算（不需要额外操作）
 
   while (currentDate < endDate) {
     const dateStr = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD格式
