@@ -13,6 +13,7 @@ import router from './routes/index.js';
 import conf from '@/handlers/config/config.js';
 import { sutando } from 'sutando';
 import { Logger } from './utils/logger.js';
+import { schedulerService } from './services/scheduler-service.js';
 
 console.log(`pid: ${process.pid}`);
 
@@ -37,6 +38,9 @@ sutando.connection();
 // 注册触发器
 initTriggers();
 await initTriggerProcessor();
+
+// 初始化定时任务服务
+schedulerService.init();
 
 const app = new Koa();
 const port = (await conf.get('PORT')) || 3000;
@@ -64,6 +68,10 @@ async function startServer() {
     app.listen(port, () => {
       Logger.info(`服务器运行在端口 ${port}`);
       Logger.info(`环境: ${process.env.NODE_ENV || 'development'}`);
+      
+      // 启动定时任务
+      schedulerService.startAll();
+      Logger.info('定时任务服务已启动');
     });
   } catch (error) {
     Logger.error('启动服务器失败:', error);
@@ -74,12 +82,27 @@ async function startServer() {
 // 优雅关闭
 process.on('SIGINT', async () => {
   Logger.info('正在关闭服务器...');
+  schedulerService.stopAll();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   Logger.info('正在关闭服务器...');
+  schedulerService.stopAll();
   process.exit(0);
+});
+
+// 处理未捕获的异常
+process.on('uncaughtException', (error) => {
+  Logger.error('未捕获的异常:', error);
+  schedulerService.stopAll();
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  Logger.error('未处理的Promise拒绝:', reason);
+  schedulerService.stopAll();
+  process.exit(1);
 });
 
 startServer();
